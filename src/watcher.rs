@@ -50,7 +50,12 @@ fn process_event(event: Event) {
                     if classifier::is_inss_file(&text){
                         if let Some((month, year)) = date::parse_reference_date(&text) {
                             if let Ok(out_dir) = utils::build_output_dir(month, year) {
-                                let _ = mover::move_file(path, &out_dir);
+                                let mut dest_path = out_dir.clone();
+                                if let Some(filename) = path.file_name() {
+                                    dest_path.push(filename);
+                                }
+
+                                let _ = mover::move_file(path, &dest_path);
                             }
                         } else {
                             println!("Failed to extract reference date");
