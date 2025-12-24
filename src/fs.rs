@@ -7,7 +7,7 @@ pub fn ensure_dir(path: &Path) -> std::io::Result<()> {
 
 pub fn move_if_missing(src: &Path, dest: &Path) -> anyhow::Result<()> {
     if dest.exists() {
-        return Ok(()); // already processed
+        return Ok(()); 
     }
     fs::rename(src, dest)?;
     Ok(())
