@@ -3,15 +3,15 @@
 ## Functional Requirements
 
 ### Detection & Parsing
-- [] RF01: Detect PDF files in watched directories
+- [x] RF01: Detect PDF files in watched directories
 - [] RF02: Extract text from PDF files (handle scanned/OCR)
 - [] RF03: Identify INSS guides vs payment receipts vs other files
-- [] RF04: Extract reference period (month/year) from documents
+- [x] RF04: Extract reference period (month/year) from documents
 - [] RF05: Extract contributor/reference number (if available)
 
 ### File Organization
 - [] RF06: Generate destination path based on date + contributor
-- [] RF07: Move files to appropriate directory
+- [x] RF07: Move files to appropriate directory
 - [] RF08: Handle naming conflicts (rename if file exists)
 - [] RF09: Maintain symbolic link or record in original location (optional)
 
@@ -29,12 +29,12 @@
 - [] RF18: Configuration via file or CLI arguments
 
 ## Non-Functional Requirements
-- [] NF01: **Reliability**: Must not lose or corrupt files during processing
-- [] NF02: **Idempotency**: Processing same file multiple times should be safe
-- [] NF03: **Performance**: Process files within 5 seconds of appearing
-- [] NF04: **Resource Usage**: Use <100MB RAM and minimal CPU when idle
-- [] NF05: **Cross-Platform**: Work on macOS, Linux, and Windows
-- [] NF06: **Observability**: Clear logs showing what happened to each file
+- NF01: **Reliability**: Must not lose or corrupt files during processing
+- NF02: **Idempotency**: Processing same file multiple times should be safe
+- NF03: **Performance**: Process files within 5 seconds of appearing
+- NF04: **Resource Usage**: Use <100MB RAM and minimal CPU when idle
+- NF05: **Cross-Platform**: Work on macOS, Linux, and Windows
+- NF06: **Observability**: Clear logs showing what happened to each file
 
 ## User Stories
 **As a user, I want to:**
