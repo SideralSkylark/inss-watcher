@@ -33,3 +33,33 @@ pub fn extract_reference_date(text: &str) -> Option<(u32, u32)> {
     
     None
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn detects_inss_header() {
+        let text = "Guia de Pagamento de Contribuição";
+        assert!(is_inss(text));
+    }
+
+    #[test]
+    fn reject_non_inss() {
+        let text = "Random doc";
+        assert!(!is_inss(text));
+    }
+
+    #[test]
+    fn extracts_reference_date_primary() {
+        let text = "20/11/2025 18:1311/2025";
+        assert_eq!(extract_reference_date(text), Some((11, 2025)));
+    }
+
+    #[test]
+    fn extracts_reference_date_fallback() {
+        let text = "Referência 03/2024";
+        assert_eq!(extract_reference_date(text), Some((3, 2024)));
+    }
+}
+

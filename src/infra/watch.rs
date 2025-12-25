@@ -33,3 +33,4 @@ pub fn start(path: PathBuf, mut handler: impl FnMut(PathBuf)) -> anyhow::Result<
 
     Ok(())
 }
+
