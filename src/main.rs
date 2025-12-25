@@ -1,10 +1,6 @@
-use log::info;
-use log::debug;
-
-mod watch;
-mod inss;
-mod pdf;
-mod fs;
+use log::{debug, info};
+use inss_watcher::infra::watch;
+use inss_watcher::app::processor;
 
 fn main() -> anyhow::Result<()> {
     env_logger::init();
@@ -15,23 +11,10 @@ fn main() -> anyhow::Result<()> {
         .ok_or_else(|| anyhow::anyhow!("No home dir"))?;
 
     info!("folder found: {:?}", downloads);
+
     debug!{"starting watcher"}
     watch::start(downloads.clone(), |path| {
-        if let Ok(text) = pdf::extract_text(&path) {
-            if !inss::is_inss(&text) {
-                debug!{"not inss guide: {}", &text}
-                return;
-            }
-
-            if let Some((month, year)) = inss::extract_reference_date(&text) {
-                let out = fs::inss_output_dir(month, year);
-                let _ = fs::ensure_dir(&out);
-
-                let mut dest = out;
-                dest.push(path.file_name().unwrap());
-                let _ = fs::move_if_missing(&path, &dest);
-            }
-        }
+        processor::process_file(path);
     })?;
 
     Ok(())
