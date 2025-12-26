@@ -37,7 +37,7 @@ pub fn process_file(path: PathBuf) {
     let mut dest = out;
     dest.push(path.file_name().unwrap());
 
-    match fs::move_if_missing(&path, &dest) {
+    match fs::move_unique(&path, &dest) {
         Ok(_) => info!("moved {:?} -> {:?}", path, dest),
         Err(e) => error!("failed to move {:?}: {}", path, e),
     }
