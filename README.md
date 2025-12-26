@@ -12,7 +12,7 @@
 ### File Organization
 - [] RF06: Generate destination path based on date + contributor [high priority]
 - [x] RF07: Move files to appropriate directory
-- [] RF08: Handle naming conflicts (rename if file exists) [high priority]
+- [x] RF08: Handle naming conflicts (rename if file exists) [high priority]
 - [] RF09: Maintain symbolic link or record in original location (optional)
 
 ### Matching System
