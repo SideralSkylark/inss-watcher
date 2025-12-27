@@ -1,6 +1,6 @@
 use std::fs;
 use std::path::{Path, PathBuf};
-use anyhow::{Result, Ok};
+use anyhow::Ok;
 
 pub fn ensure_dir(path: &Path) -> std::io::Result<()> {
     fs::create_dir_all(path)

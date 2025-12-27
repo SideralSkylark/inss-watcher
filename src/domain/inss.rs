@@ -5,13 +5,9 @@ pub fn is_inss(text: &str) -> bool {
 }
 
 pub fn extract_reference_date(text: &str) -> Option<(u32, u32)> {
-    // Look for the reference date pattern specifically
-    // In your text: "20/11/2025 18:1311/2025" 
-    // We want to capture "11/2025" which follows a time pattern
     let re = regex::Regex::new(r"\b(\d{1,2})/\d{4}\s+\d{1,2}:\d{2}(\d{1,2})/(\d{4})\b").ok()?;
     
     if let Some(cap) = re.captures(text) {
-        // Group 2 is the month, group 3 is the year
         let month: u32 = cap[2].parse().ok()?;
         let year: u32 = cap[3].parse().ok()?;
         
@@ -20,7 +16,6 @@ pub fn extract_reference_date(text: &str) -> Option<(u32, u32)> {
         }
     }
     
-    // Fallback to the original logic
     let fallback_re = regex::Regex::new(r"([0-1]?\d)/(\d{4})").ok()?;
     
     for cap in fallback_re.captures_iter(text) {
@@ -32,6 +27,22 @@ pub fn extract_reference_date(text: &str) -> Option<(u32, u32)> {
     }
     
     None
+}
+
+// contr num is 9 digits long, its between Número do Contribuinte and Guia de Pagamento de Contribuição - GPC
+pub fn extract_contributor_num(text: &str) -> Option<String> {
+    let re = regex::Regex::new(r"(?is)Número do Contribuinte.*?(\d{9}).*?Guia de Pagamento de Contribuição\s*-\s*GPC").ok()?;
+
+    let caps = re.captures(text)?;
+    Some(caps[1].to_string())
+}
+
+// guide num is 9 digits long, its between Data limite de PagamentoNúmero da Guia and Autenticação Bancária
+pub fn extract_guide_num(text: &str) -> Option<String> {
+    let re = regex::Regex::new(r"(?is)Data limite de PagamentoNúmero da Guia.*?(\d{9}).*?Autenticação Bancária").ok()?;
+
+    let caps = re.captures(text)?;
+    Some(caps[1].to_string())
 }
 
 #[cfg(test)]
@@ -60,6 +71,34 @@ mod tests {
     fn extracts_reference_date_fallback() {
         let text = "Referência 03/2024";
         assert_eq!(extract_reference_date(text), Some((3, 2024)));
+    }
+
+    #[test]
+    fn extracts_guide_number() {
+        let text = "
+            Data limite de PagamentoNúmero da Guia
+            123456789
+            Autenticação Bancária
+        ";
+
+        assert_eq!(
+            extract_guide_num(text), 
+            Some("123456789".to_string())
+        )
+    }
+
+    #[test]
+    fn extracts_contributor_num() {
+        let text = "
+            Número do Contribuinte
+            123456789
+            Guia de Pagamento de Contribuição - GPC
+        ";
+
+        assert_eq!(
+            extract_contributor_num(text),
+            Some("123456789".to_string())
+        )
     }
 }
 
