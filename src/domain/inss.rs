@@ -31,7 +31,7 @@ pub fn extract_reference_date(text: &str) -> Option<(u32, u32)> {
 
 // contr num is 9 digits long, its between Número do Contribuinte and Guia de Pagamento de Contribuição - GPC
 pub fn extract_contributor_num(text: &str) -> Option<String> {
-    let re = regex::Regex::new(r"(?is)Número do Contribuinte.*?(\d{9}).*?Guia de Pagamento de Contribuição\s*-\s*GPC").ok()?;
+    let re = regex::Regex::new(r"(?is)Guia de Pagamento de Contribuição\s*-\s*GPC.*?(\d{9}).*?Número do Contribuinte").ok()?;
 
     let caps = re.captures(text)?;
     Some(caps[1].to_string())
@@ -90,9 +90,9 @@ mod tests {
     #[test]
     fn extracts_contributor_num() {
         let text = "
-            Número do Contribuinte
-            123456789
             Guia de Pagamento de Contribuição - GPC
+            123456789
+            Número do Contribuinte
         ";
 
         assert_eq!(

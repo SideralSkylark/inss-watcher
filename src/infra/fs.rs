@@ -35,7 +35,7 @@ pub fn move_unique(src: &Path, dest: &Path) -> anyhow::Result<()> {
     Ok(())
 }
 
-pub fn inss_output_dir(month: u32, year: u32) -> PathBuf {
+pub fn inss_output_dir(month: u32, year: u32, contributor_num: &str) -> PathBuf {
     let mut base = dirs::document_dir()
         .or_else(dirs::home_dir)
         .unwrap();
@@ -43,6 +43,7 @@ pub fn inss_output_dir(month: u32, year: u32) -> PathBuf {
     base.push("INSS");
     base.push(year.to_string());
     base.push(format!("{:02}", month));
+    base.push(format!("contributor_{contributor_num}"));
     base
 }
 

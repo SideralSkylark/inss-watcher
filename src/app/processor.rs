@@ -28,14 +28,30 @@ pub fn process_file(path: PathBuf) {
         }
     };
 
-    let out = fs::inss_output_dir(month, year);
+    let contributor_num = match inss::extract_contributor_num(&text) {
+        Some(num) => num,
+        None => {
+            warn!("INSS guide without contributor number: {:?}", path);
+            return;
+        }
+    };
+
+    let out = fs::inss_output_dir(month, year, &contributor_num);
     if let Err(e) = fs::ensure_dir(&out) {
         error!("failed to create output dir {:?}: {}", out, e);
         return;
     }
 
     let mut dest = out;
-    dest.push(path.file_name().unwrap());
+
+    let filename = match path.file_name() {
+        Some(name) => name,
+        None => {
+            warn!("path has no filename: {:?}", path);
+            return;
+        }
+    };
+    dest.push(filename);
 
     match fs::move_unique(&path, &dest) {
         Ok(_) => info!("moved {:?} -> {:?}", path, dest),
