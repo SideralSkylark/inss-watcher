@@ -1,7 +1,61 @@
+#[derive(Debug)]
+pub enum DocumentKind {
+    InssGuide,
+    PaymentReceipt,
+    Other
+}
+
 const INSS_HEADER: &str = "Guia de Pagamento de Contribuição";
+
+pub fn classify_document(text: &str) -> DocumentKind {
+    if is_inss(text) {
+        return DocumentKind::InssGuide;
+    } 
+
+    if is_payment_receipt(text) {
+        return DocumentKind::PaymentReceipt;
+    }
+
+    DocumentKind::Other
+}
 
 pub fn is_inss(text: &str) -> bool {
     text.contains(INSS_HEADER)
+}
+
+pub fn is_payment_receipt(text: &str) -> bool {
+    let mut score = 0;
+
+    let lower = text.to_lowercase();
+
+    let keywords = [
+        "pagamento",
+        "comprovativo",
+        "operação",
+        "montante",
+        "juros",
+        "multa",
+        "montante pagamento",
+        "pagamento ao estado",
+        "inss",
+        "netplus",
+    ];
+
+    for kw in keywords {
+        if lower.contains(kw) {
+            score += 1;
+        }
+    }
+
+    if regex::Regex::new(r"\b\d+([.,]\d{2})\b").unwrap().is_match(&lower) {
+        score += 1;
+    }
+
+    if regex::Regex::new(r"\d{1,2}/\d{1,2}/\d{4}\s+\d{1,2}:\d{2}").unwrap().is_match(&lower) {
+        score += 1;
+    }
+
+    score >= 2
 }
 
 pub fn extract_reference_date(text: &str) -> Option<(u32, u32)> {
@@ -50,6 +104,38 @@ mod tests {
     use super::*;
 
     #[test]
+    fn classifies_inss_guide() {
+        let text = "Guia de Pagamento de Contribuição";
+        assert!(matches!(
+            classify_document(text),
+            DocumentKind::InssGuide
+        ));
+    }
+
+    #[test]
+    fn classifies_payment_receipt() {
+        let text = "
+            Comprovativo de Pagamento
+            Valor pago: 100,00
+            Autenticação Bancária
+            10/01/2024 09:00
+        ";
+        assert!(matches!(
+            classify_document(text),
+            DocumentKind::PaymentReceipt
+        ));
+    }
+
+    #[test]
+    fn classifies_other_document() {
+        let text = "Hello world, this is a README file";
+        assert!(matches!(
+            classify_document(text),
+            DocumentKind::Other
+        ));
+    }
+
+    #[test]
     fn detects_inss_header() {
         let text = "Guia de Pagamento de Contribuição";
         assert!(is_inss(text));
@@ -59,6 +145,27 @@ mod tests {
     fn reject_non_inss() {
         let text = "Random doc";
         assert!(!is_inss(text));
+    }
+
+    #[test]
+    fn detects_payment_receipt() {
+        let text = "
+            Comprovativo de Pagamento
+            Valor pago: 12.345,67
+            Autenticação Bancária
+            Data: 12/03/2024 14:22
+        ";
+        assert!(is_payment_receipt(text));
+    }
+
+    #[test]
+    fn reject_non_payment_receipt() {
+        let text = "
+            Guia de Pagamento de Contribuição
+            Referência 03/2024
+            Número do Contribuinte
+        ";
+        assert!(!is_payment_receipt(text));
     }
 
     #[test]
@@ -101,4 +208,3 @@ mod tests {
         )
     }
 }
-

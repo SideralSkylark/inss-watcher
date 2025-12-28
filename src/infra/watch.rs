@@ -14,7 +14,7 @@ pub fn start(path: PathBuf, mut handler: impl FnMut(PathBuf)) -> anyhow::Result<
             Err(_) => continue,
         };
 
-        log::debug!("RAW EVENT: {:?}", event);
+        log::debug!("event=fs_raw_event data={:?}", event);
         if !matches!(event.kind, EventKind::Create(_) | EventKind::Modify(_)) {
             continue;
         }
@@ -26,6 +26,10 @@ pub fn start(path: PathBuf, mut handler: impl FnMut(PathBuf)) -> anyhow::Result<
 
             if seen.insert(path.clone()) {
                 std::thread::sleep(Duration::from_secs(1));
+                log::info!(
+                    "event=file_detected path={:?}",
+                    path
+                );
                 handler(path);
             }
         }
