@@ -15,6 +15,11 @@ pub fn process_file(path: PathBuf) {
         }
     };
 
+    if text == 0 {
+        warn!("event=processing_failed path={:?} error=pdf_empty");
+        return;
+    }
+
     let kind = inss::classify_document(&text);
     debug!("event=document_classified path={:?} kind={:?}", path, kind);
 
