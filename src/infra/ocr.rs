@@ -1,7 +1,4 @@
-use std::path::PathBuf;
+use std::path::Path;
 
-
-
-pub fn extract_text(path: PathBuf) -> anyhow::Result<String> {
-    
-}
+// pub fn extract_text(path: &Path) -> anyhow::Result<String> {
+// }

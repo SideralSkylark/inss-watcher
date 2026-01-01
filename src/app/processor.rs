@@ -15,8 +15,8 @@ pub fn process_file(path: PathBuf) {
         }
     };
 
-    if text == 0 {
-        warn!("event=processing_failed path={:?} error=pdf_empty");
+    if text.len() == 0 {
+        warn!("event=processing_failed path={:?} error=pdf_empty", path);
         return;
     }
 

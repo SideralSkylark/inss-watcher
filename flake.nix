@@ -1,5 +1,5 @@
 {
-  description = "INSS watcher dev environment";
+  description = "INSS watcher dev environment without leptonica";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
@@ -11,10 +11,9 @@
         pkgs = import nixpkgs { system = "x86_64-linux"; };
       in pkgs.mkShell {
         buildInputs = with pkgs; [
-          poppler-utils
           tesseract
-          tesseract-data-por
-          pkg-config
+          poppler-utils
+          pkg-config 
         ];
       };
   };
