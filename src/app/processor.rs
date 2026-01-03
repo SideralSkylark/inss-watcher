@@ -2,12 +2,12 @@ use std::path::PathBuf;
 use log::{debug, info, warn, error};
 
 use crate::domain::inss;
-use crate::infra::{pdf, fs};
+use crate::infra::{fs, ocr, pdf};
 
 pub fn process_file(path: PathBuf) {
     info!("event=file_processing_started path={:?}", path);
 
-    let text = match pdf::extract_text(&path) {
+    let mut text = match pdf::extract_text(&path) {
         Ok(t) => t,
         Err(e) => {
             error!("event=processing_failed stage=pdf_extract path={:?} error={}", path, e);
@@ -15,9 +15,29 @@ pub fn process_file(path: PathBuf) {
         }
     };
 
-    if text.len() == 0 {
-        warn!("event=processing_failed path={:?} error=pdf_empty", path);
-        return;
+    if text.trim().is_empty() {
+        info!("event=ocr_fallback reason=empty_pdf_text path={:?}", path);
+
+        let img_path = match pdf::pdf_to_img(&path) {
+            Ok(p) => p,
+            Err(e) => {
+                error!("event=processing_failed stage=pdf_render path={:?} error={}", path, e);
+            return;
+            }
+        };
+
+        match ocr::extract_text(&img_path) {
+            Ok(ocr_text) => {
+                debug!("event=ocr_completed path={:?} text_len={}", img_path, ocr_text.len());
+                text = ocr_text;
+            },
+            Err(e) => {
+                error!("event=processing_failed stage=ocr path={:?} error={}", img_path, e);
+                return;
+            }
+        };
+
+        let _ = std::fs::remove_file(&img_path);
     }
 
     let kind = inss::classify_document(&text);
