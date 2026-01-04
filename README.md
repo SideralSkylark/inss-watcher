@@ -45,3 +45,8 @@
 - [] US05: Fix incorrect matches manually
 - [] US06: Configure watched directories
 - [] US07: Pause/stop the daemon cleanly
+
+
+
+---
+use reference and amount to match, and date as a helper with the +10 days of next mont for help. for now the project should assume guides are payed in time
