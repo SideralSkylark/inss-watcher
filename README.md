@@ -4,10 +4,10 @@
 
 ### Detection & Parsing
 - [x] RF01: Detect PDF files in watched directories
-- [] RF02: Extract text from PDF files (handle scanned/OCR) [high priority]
+- [x] RF02: Extract text from PDF files (handle scanned/OCR)
 - [x] RF03: Identify INSS guides vs payment receipts vs other files 
 - [x] RF04: Extract reference period (month/year) from documents
-- [] RF05: Extract contributor/reference number (if available)
+- [x] RF05: Extract contributor number/reference number
 
 ### File Organization
 - [x] RF06: Generate destination path based on date + contributor 
