@@ -18,9 +18,9 @@ pub struct InssGuide {
 pub fn parse_guide(text: &str) -> anyhow::Result<InssGuide> {
     Ok(
         InssGuide { 
-            reference_num: extract_guide_reference(text).context("missing guide reference"), 
-            reference_period: extract_reference_period(text).context("missing reference period"), 
-            amount: extract_amount(text).context("missing payment amount"), 
+            reference_num: extract_guide_reference(text).context("missing guide reference")?, 
+            reference_period: extract_reference_period(text).context("missing reference period")?, 
+            amount: extract_amount(text).context("missing payment amount")?, 
         }
     )
 }
@@ -43,13 +43,15 @@ pub fn extract_contributor_num(text: &str) -> Option<String> {
 }
 
 fn extract_reference_period(text: &str) -> Option<ReferencePeriod> {
-    let re = regex::Regex::new(r"\b(0?[1-9]|1[0-2])/(\d{4})\b").ok()?;
+    let re = regex::Regex::new(r"(0?[1-9]|1[0-2])/(\d{4})").ok()?;
 
     re.captures_iter(text)
         .last()
-        .map(|cap| ReferencePeriod { 
-            month: cap[1].parse().ok()?, 
-            year: cap[2].parse().ok()?, 
+        .and_then(|cap| {
+            Some(ReferencePeriod {
+                month: cap[1].parse().ok()?,
+                year: cap[2].parse().ok()?,
+            })
         })
 }
 

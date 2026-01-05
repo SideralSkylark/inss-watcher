@@ -11,9 +11,9 @@ pub struct PaymentReceipt {
 
 pub fn parse_receipt(text: &str) -> anyhow::Result<PaymentReceipt> {
     Ok(PaymentReceipt { 
-        reference_num: extract_reference_num(text).context("missing reference number"), 
-        payment_date: extract_payment_date(text).context("missing payment date"),
-        amount: extract_amount(text).context("missing payment amount"),
+        reference_num: extract_reference_num(text).context("missing reference number")?, 
+        payment_date: extract_payment_date(text).context("missing payment date")?,
+        amount: extract_amount(text).context("missing payment amount")?,
     })
 }
 
