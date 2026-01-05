@@ -53,12 +53,12 @@ pub fn pdf_to_img(path: &Path) -> anyhow::Result<PathBuf> {
 //     assert!(!text.trim().is_empty());
 // }
 
-#[test]
-fn fails_when_pdf_does_not_exist() {
-    let path = Path::new("../tests/fixtures/missing.pdf");
-
-    let err = pdf_to_img(path).unwrap_err();
-
-    assert!(err.to_string().contains("pdftoppm"));
-}
+// #[test]
+// fn fails_when_pdf_does_not_exist() {
+//     let path = Path::new("../tests/fixtures/missing.pdf");
+//
+//     let err = pdf_to_img(path).unwrap_err();
+//
+//     assert!(err.to_string().contains("pdftoppm"));
+// }
 

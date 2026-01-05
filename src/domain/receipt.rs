@@ -19,7 +19,7 @@ pub fn parse_receipt(text: &str) -> anyhow::Result<PaymentReceipt> {
 
 fn extract_reference_num(text: &str) -> Option<String> {
     let re = regex::Regex::new(r"Referência\s+(\d{9})").ok()?;
-    Some(re.captures(text)?.get(1)?.as_str()?.to_string())
+    Some(re.captures(text)?.get(1)?.as_str().to_string())
 }
 
 fn extract_payment_date(text: &str) -> Option<NaiveDate> {
@@ -29,7 +29,7 @@ fn extract_payment_date(text: &str) -> Option<NaiveDate> {
 }
 
 fn extract_amount(text: &str) -> Option<Money> {
-    let re = Regex::new(r"Montante pagamento\s+([\d.,]+)").ok()?;
+    let re = regex::Regex::new(r"Montante pagamento\s+([\d.,]+)").ok()?;
     let raw = re.captures(text)?.get(1)?.as_str();
     Money::from_str(raw)
 }

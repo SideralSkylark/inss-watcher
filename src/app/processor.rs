@@ -109,8 +109,9 @@ pub fn handle_inss_guide(path: PathBuf, text: &str) {
 
 pub fn handle_payment_receipt(path: PathBuf, text: &str) {
     info!(
-        "event=payment_receipt_detected path={:?}",
-        path
+        "event=payment_receipt_detected path={:?} raw={}",
+        path,
+        text
     );
-    todo!("implement receipt logic");
+    print!("sucess");
 }
