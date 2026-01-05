@@ -62,3 +62,106 @@ fn extract_amount(text: &str) -> Option<Money> {
     Money::from_str(raw)
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn extracts_reference() {
+        let text = "Data limite de PagamentoNúmero da Guia
+                    123456789";
+        assert_eq!(
+            extract_guide_reference(text),
+            Some("123456789".to_string())
+        )
+    }
+
+    #[test]
+    fn extracts_reference_period_simple() {
+        let text = "Referência 10/2025";
+
+        let period = extract_reference_period(text).unwrap();
+
+        assert_eq!(period.month, 10);
+        assert_eq!(period.year, 2025);
+    }
+
+    #[test]
+    fn takes_last_reference_period_when_multiple_exist() {
+        let text = "01/2024 texto intermédio 10/2025";
+
+        let period = extract_reference_period(text).unwrap();
+
+        assert_eq!(period.month, 10);
+        assert_eq!(period.year, 2025);
+    }
+
+    #[test]
+    fn reference_period_returns_none_when_absent() {
+        let text = "Documento sem mês e ano";
+
+        assert!(extract_reference_period(text).is_none());
+    }
+
+    #[test]
+    fn extracts_amount_with_comma_decimal() {
+        let text = "Valor Total da Guia 721,70 MT";
+
+        let amount = extract_amount(text).unwrap();
+
+        assert_eq!(amount.cents, 72170);
+    }
+
+    #[test]
+    fn extracts_amount_with_dot_thousands() {
+        let text = "Valor Total da Guia 1.234,56 MT";
+
+        let amount = extract_amount(text).unwrap();
+
+        assert_eq!(amount.cents, 123456);
+    }
+
+    #[test]
+    fn amount_returns_none_when_missing() {
+        let text = "Sem valores monetários";
+
+        assert!(extract_amount(text).is_none());
+    }
+
+    #[test]
+    fn extracts_contributor_number() {
+        let text = "
+            Guia de Pagamento de Contribuição - GPC
+            915732100
+            Número do Contribuinte
+        ";
+
+        assert_eq!(
+            extract_contributor_num(text),
+            Some("915732100".to_string())
+        );
+    }
+
+    #[test]
+    fn parses_complete_guide_successfully() {
+        let text = r#"
+            Guia de Pagamento de Contribuição - GPC
+            915732100
+            Número do Contribuinte
+            721,70 MT
+            Valor Total da Guia
+            Data limite de PagamentoNúmero da Guia
+            115320342
+            03/11/2025 14:4610/2025
+        "#;
+
+        let guide = parse_guide(text).unwrap();
+
+        assert_eq!(guide.reference_num, "115320342");
+        assert_eq!(guide.reference_period.month, 10);
+        assert_eq!(guide.reference_period.year, 2025);
+        assert_eq!(guide.amount.cents, 72170);
+    }
+
+
+} 
