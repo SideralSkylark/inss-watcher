@@ -163,5 +163,39 @@ mod tests {
         assert_eq!(guide.amount.cents, 72170);
     }
 
+    #[test]
+    fn parse_guide_fails_when_reference_missing() {
+        let text = "721,70 MT 10/2025";
+
+        let err = parse_guide(text).unwrap_err();
+
+        assert!(err.to_string().contains("missing guide reference"));
+    }
+
+    #[test]
+    fn parse_guide_fails_when_reference_period_missing() {
+        let text = r#"
+            Data limite de PagamentoNúmero da Guia
+            115320342
+            721,70 MT
+        "#;
+
+        let err = parse_guide(text).unwrap_err();
+
+        assert!(err.to_string().contains("missing reference period"));
+    }
+
+    #[test]
+    fn parse_guide_fails_when_amount_missing() {
+        let text = r#"
+            Data limite de PagamentoNúmero da Guia
+            115320342
+            10/2025
+        "#;
+
+        let err = parse_guide(text).unwrap_err();
+
+        assert!(err.to_string().contains("missing payment amount"));
+    }
 
 } 
