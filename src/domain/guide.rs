@@ -4,8 +4,8 @@ use crate::domain::money::Money;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct ReferencePeriod {
-    month: u8,
-    year: u16,
+    pub month: u8,
+    pub year: u16,
 }
 
 #[derive(Debug, Clone)]
