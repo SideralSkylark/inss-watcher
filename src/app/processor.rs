@@ -43,7 +43,7 @@ pub fn process_file(path: PathBuf) {
     }
 
     let kind = classify::classify_doc(&text);
-    debug!("event=document_classified path={:?} kind={:?} raw_len=", path, kind, text.len());
+    debug!("event=document_classified path={:?} kind={:?} raw_len={}", path, kind, text.len());
 
     match kind {
         DocumentKind::InssGuide => handle_inss_guide(path, &text),
