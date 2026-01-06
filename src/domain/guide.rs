@@ -11,6 +11,7 @@ pub struct ReferencePeriod {
 #[derive(Debug, Clone)]
 pub struct InssGuide {
     pub reference_num: String,
+    pub contributor_num: String,
     pub reference_period: ReferencePeriod,
     pub amount: Money,
 }
@@ -19,6 +20,7 @@ pub fn parse_guide(text: &str) -> anyhow::Result<InssGuide> {
     Ok(
         InssGuide { 
             reference_num: extract_guide_reference(text).context("missing guide reference")?, 
+            contributor_num: extract_contributor_num(text).context("missing contributor number")?,
             reference_period: extract_reference_period(text).context("missing reference period")?, 
             amount: extract_amount(text).context("missing payment amount")?, 
         }
@@ -170,6 +172,18 @@ mod tests {
         let err = parse_guide(text).unwrap_err();
 
         assert!(err.to_string().contains("missing guide reference"));
+    }
+
+    #[test]
+    fn parse_guide_fails_when_contributor_missing() {
+        let text = "
+            Guia de Pagamento de Contribuição - GPC
+            Número do Contribuinte
+            ";
+
+        let err = parse_guide(text).unwrap_err();
+
+        assert!(err.to_string().contains("missing contributor number"));
     }
 
     #[test]

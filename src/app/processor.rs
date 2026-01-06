@@ -1,7 +1,9 @@
 use std::path::PathBuf;
 use log::{debug, info, warn, error};
 
-use crate::domain::inss;
+use crate::domain::classify::DocumentKind;
+use crate::domain::guide::InssGuide;
+use crate::domain::{classify, guide};
 use crate::infra::{fs, ocr, pdf};
 
 pub fn process_file(path: PathBuf) {
@@ -40,17 +42,17 @@ pub fn process_file(path: PathBuf) {
         let _ = std::fs::remove_file(&img_path);
     }
 
-    let kind = inss::classify_document(&text);
-    debug!("event=document_classified path={:?} kind={:?}", path, kind);
+    let kind = classify::classify_doc(&text);
+    debug!("event=document_classified path={:?} kind={:?} raw={}", path, kind, text);
 
     match kind {
-        inss::DocumentKind::InssGuide => {
+        DocumentKind::InssGuide => {
             handle_inss_guide(path, &text)
         }
-        inss::DocumentKind::PaymentReceipt => {
+        DocumentKind::PaymentReceipt => {
             handle_payment_receipt(path, &text);
         }
-        inss::DocumentKind::Other => {
+        DocumentKind::Other => {
             info!("event=document_ignored reason=unsupported_type path={:?}", path);
         }
     }
@@ -59,31 +61,23 @@ pub fn process_file(path: PathBuf) {
 pub fn handle_inss_guide(path: PathBuf, text: &str) {
     info!("event=inss_guide_processing_started path={:?}", path);
 
-    let (month, year) = match inss::extract_reference_date(&text) {
-        Some(d) => d,
-        None => {
-            warn!("event=inss_guide_invalid reason=missing_reference_date path={:?}", path);
+    let guide: InssGuide = match guide::parse_guide(&text) {
+        Ok(g) => g,
+        Err(e) => {
+            warn!("event=parsing_failed path={:?} error={}", path, e);
             return;
-        }
-    };
-
-    let contributor_num = match inss::extract_contributor_num(&text) {
-        Some(num) => num,
-        None => {
-            warn!("event=inss_guide_invalid reason=missing_contributor path={:?}", path);
-            return;
-        }
+        },
     };
 
     debug!(
         "event=inss_guide_metadata_extracted path={:?} month={} year={} contributor={}",
         path,
-        month,
-        year,
-        contributor_num
+        guide.reference_period.month,
+        guide.reference_period.year,
+        guide.contributor_num,
     );
 
-    let out = fs::inss_output_dir(month, year, &contributor_num);
+    let out = fs::inss_output_dir(guide.reference_period.month as u32, guide.reference_period.year as u32, &guide.contributor_num);
 
     if let Err(e) = fs::ensure_dir(&out) {
         error!("event=inss_output_dir_failed path={:?} out_dir={:?} error={}", path, out, e);
