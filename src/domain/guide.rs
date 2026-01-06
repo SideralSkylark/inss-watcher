@@ -1,5 +1,4 @@
 use anyhow::Context;
-
 use crate::domain::money::Money;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -27,18 +26,18 @@ pub fn parse_guide(text: &str) -> anyhow::Result<InssGuide> {
     )
 }
 
-// reference is a 9 digit long unsigned int that apears after Data limite de PagamentoNúmero da Guia
 fn extract_guide_reference(text: &str) -> Option<String> {
-    let re = regex::Regex::new(r"Data limite de PagamentoNúmero da Guia\s*(\d{9})").ok()?;
+    let re = regex::Regex::new(
+        r"(?is)Número\s+da\s+Guia[^\d]{0,30}(\d{8,12})"
+    ).ok()?;
 
-    let caps = re.captures(text)?;
-    Some(caps[1].to_string())
-
+    re.captures_iter(text)
+        .last()
+        .map(|cap| cap[1].to_string())
 }
 
-// contr num is 9 digits long, its between Número do Contribuinte and Guia de Pagamento de Contribuição - GPC
 pub fn extract_contributor_num(text: &str) -> Option<String> {
-    let re = regex::Regex::new(r"(?is)Guia de Pagamento de Contribuição\s*-\s*GPC.*?(\d{9}).*?Número do Contribuinte").ok()?;
+    let re = regex::Regex::new(r"(?is)Guia de Pagamento de Contribuição\s*-\s*GPC.*?(\d{8,12}).*?Número do Contribuinte").ok()?;
 
     let caps = re.captures(text)?;
     Some(caps[1].to_string())
