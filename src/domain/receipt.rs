@@ -18,7 +18,7 @@ pub fn parse_receipt(text: &str) -> anyhow::Result<PaymentReceipt> {
 }
 
 fn extract_reference_num(text: &str) -> Option<String> {
-    let re = regex::Regex::new(r"Referência\s+(\d{9})").ok()?;
+    let re = regex::Regex::new(r"Referência\s+(\d{8,12})").ok()?;
     Some(re.captures(text)?.get(1)?.as_str().to_string())
 }
 
@@ -40,7 +40,7 @@ mod tests {
     use chrono::NaiveDate;
 
     #[test]
-    fn extracts_reference_number() {
+    fn extracts_reference_number_9() {
         let text = "
             Referência 117450766
             Montante pagamento 698,75
@@ -49,6 +49,19 @@ mod tests {
         assert_eq!(
             extract_reference_num(text),
             Some("117450766".to_string())
+        );
+    }
+
+    #[test]
+    fn extracts_reference_number_8() {
+        let text = "
+            Referência 11745076
+            Montante pagamento 698,75
+        ";
+
+        assert_eq!(
+            extract_reference_num(text),
+            Some("11745076".to_string())
         );
     }
 
