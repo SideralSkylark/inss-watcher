@@ -3,4 +3,3 @@ pub mod guide;
 pub mod matcher;
 pub mod money;
 pub mod receipt;
-pub mod inss;
