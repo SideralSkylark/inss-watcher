@@ -43,15 +43,11 @@ pub fn process_file(path: PathBuf) {
     }
 
     let kind = classify::classify_doc(&text);
-    debug!("event=document_classified path={:?} kind={:?} raw={}", path, kind, text);
+    debug!("event=document_classified path={:?} kind={:?} raw_len=", path, kind, text.len());
 
     match kind {
-        DocumentKind::InssGuide => {
-            handle_inss_guide(path, &text)
-        }
-        DocumentKind::PaymentReceipt => {
-            handle_payment_receipt(path, &text);
-        }
+        DocumentKind::InssGuide => handle_inss_guide(path, &text),
+        DocumentKind::PaymentReceipt => handle_payment_receipt(path, &text),
         DocumentKind::Other => {
             info!("event=document_ignored reason=unsupported_type path={:?}", path);
         }
@@ -77,10 +73,17 @@ pub fn handle_inss_guide(path: PathBuf, text: &str) {
         guide.contributor_num,
     );
 
-    let out = fs::inss_output_dir(guide.reference_period.month as u32, guide.reference_period.year as u32, &guide.contributor_num);
+    let out = fs::inss_output_dir(
+        guide.reference_period.month as u32,
+        guide.reference_period.year as u32, 
+        &guide.contributor_num
+    );
 
     if let Err(e) = fs::ensure_dir(&out) {
-        error!("event=inss_output_dir_failed path={:?} out_dir={:?} error={}", path, out, e);
+        error!(
+            "event=inss_output_dir_failed path={:?} out_dir={:?} error={}", 
+            path, out, e
+        );
         return;
     }
 
@@ -92,7 +95,7 @@ pub fn handle_inss_guide(path: PathBuf, text: &str) {
         }
     };
 
-    let mut dest = out;
+    let mut dest = out.clone();
     dest.push(filename);
 
     match fs::move_unique(&path, &dest) {
@@ -107,5 +110,4 @@ pub fn handle_payment_receipt(path: PathBuf, text: &str) {
         path,
         text
     );
-    print!("sucess");
 }

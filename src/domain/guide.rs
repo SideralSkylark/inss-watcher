@@ -68,12 +68,22 @@ mod tests {
     use super::*;
 
     #[test]
-    fn extracts_reference() {
+    fn extracts_reference_9digit() {
         let text = "Data limite de PagamentoNúmero da Guia
                     123456789";
         assert_eq!(
             extract_guide_reference(text),
             Some("123456789".to_string())
+        )
+    }
+
+    #[test]
+    fn extracts_reference_8digit() {
+        let text = "Data limite de PagamentoNúmero da Guia
+                    12345678";
+        assert_eq!(
+            extract_guide_reference(text),
+            Some("12345678".to_string())
         )
     }
 
