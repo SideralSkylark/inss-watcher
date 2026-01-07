@@ -50,3 +50,22 @@
 
 ---
 use reference and amount to match, and date as a helper with the +10 days of next mont for help. for now the project should assume guides are payed in time
+
+so in fs.rs the move function is agnostic enough so that i can use it for the new flow.
+processor (if guide)
+    |-store metadata in sql lite
+        |-check for matching receipts in db
+            |-if true (move guide and receipt to apropriate folder)
+            |-if not (quarentine guide)
+
+processor (if receipt)
+    |-store metadata
+        |-check for matching guides under quarentine
+            |-if true (move pair to apropriate dir)
+            |- if not (quarentine)
+
+n1. we allways store data in db for observability later.
+n2. when checking it's pertinent we store if its matched or not to avoid matching already matched guide
+
+Documents/INSS/{year}/...
+Documents/INSS/quarentine
