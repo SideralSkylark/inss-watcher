@@ -74,7 +74,7 @@ pub fn handle_inss_guide(path: PathBuf, text: &str) {
 
     persistence::store_guide(&guide);
 
-    try_match_guide(&guide, path)
+    try_match_guide(&guide, &path)
 }
 
 pub fn handle_payment_receipt(path: PathBuf, text: &str) {
@@ -99,7 +99,7 @@ pub fn handle_payment_receipt(path: PathBuf, text: &str) {
 
     store_receipt(&receipt);
 
-    try_match_receipt(&receipt, path);
+    try_match_receipt(&receipt, &path);
 }
 
 fn try_match_guide(guide: &InssGuide, path: &Path) {
