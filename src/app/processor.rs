@@ -3,8 +3,9 @@ use log::{debug, info, warn, error};
 
 use crate::domain::classify::DocumentKind;
 use crate::domain::guide::InssGuide;
-use crate::domain::{classify, guide};
-use crate::infra::{fs, ocr, pdf};
+use crate::domain::receipt::PaymentReceipt;
+use crate::domain::{classify, guide, matcher};
+use crate::infra::{fs, ocr, pdf, persistence};
 
 pub fn process_file(path: PathBuf) {
     info!("event=file_processing_started path={:?}", path);
@@ -65,43 +66,14 @@ pub fn handle_inss_guide(path: PathBuf, text: &str) {
         },
     };
 
-    debug!(
-        "event=inss_guide_metadata_extracted path={:?} month={} year={} contributor={}",
-        path,
-        guide.reference_period.month,
-        guide.reference_period.year,
-        guide.contributor_num,
-    );
-
-    let out = fs::inss_output_dir(
-        guide.reference_period.month as u32,
-        guide.reference_period.year as u32, 
-        &guide.contributor_num
-    );
-
-    if let Err(e) = fs::ensure_dir(&out) {
-        error!(
-            "event=inss_output_dir_failed path={:?} out_dir={:?} error={}", 
-            path, out, e
-        );
+    if persistence::guide_exists(guide) {
+        info!("event=resource_already_exists path={:?}", path);
         return;
     }
 
-    let filename = match path.file_name() {
-        Some(name) => name,
-        None => {
-            warn!("event=inss_guide_invalid reason=missing_filename path={:?}", path);
-            return;
-        }
-    };
+    persistence::store_guide(guide);
 
-    let mut dest = out.clone();
-    dest.push(filename);
-
-    match fs::move_unique(&path, &dest) {
-        Ok(_) => info!("event=file_moved kind=inss_guide src={:?} dst={:?}", path, dest),
-        Err(e) => error!("event=file_move_failed kind=inss_guide src={:?} dst={:?} error={}", path, dest, e),
-    }
+    try_match_guide(guide, path)
 }
 
 pub fn handle_payment_receipt(path: PathBuf, text: &str) {
@@ -110,4 +82,21 @@ pub fn handle_payment_receipt(path: PathBuf, text: &str) {
         path,
         text
     );
+}
+
+fn try_match_guide(guide: InssGuide, path: PathBuf) {
+        let matching_resource: PaymentReceipt = match persistence::query_matching() {
+        Some(receipt) => {
+            info("event=matching_resource_found path={:?}", matching_resource.path);
+            fs::move_pair(path, matching_resource.path);
+        } None => {
+            let quarentine_dest = fs::quarentine(path);
+            info!("event=no_matches_found event=guide_moved src={:?} dest={:?}", path, quarentine_dest);
+        }
+    }
+
+}
+
+fn try_match_receipt(receipt: PaymentReceipt, path: PathBuf) {
+
 }
