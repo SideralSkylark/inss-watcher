@@ -1,16 +1,27 @@
+use std::path::PathBuf;
+
 use anyhow::Context;
 use chrono::NaiveDate;
 use crate::domain::money::Money;
+
+#[derive(Debug, Clone)]
+pub struct ParsedReceipt {
+    pub reference_num: String,
+    pub payment_date: NaiveDate,
+    pub amount: Money,
+}
+
 
 #[derive(Debug, Clone)]
 pub struct PaymentReceipt {
     pub reference_num: String,
     pub payment_date: NaiveDate,
     pub amount: Money,
+    pub path: PathBuf,
 }
 
-pub fn parse_receipt(text: &str) -> anyhow::Result<PaymentReceipt> {
-    Ok(PaymentReceipt { 
+pub fn parse_receipt(text: &str) -> anyhow::Result<ParsedReceipt> {
+    Ok(ParsedReceipt { 
         reference_num: extract_reference_num(text).context("missing reference number")?, 
         payment_date: extract_payment_date(text).context("missing payment date")?,
         amount: extract_amount(text).context("missing payment amount")?,

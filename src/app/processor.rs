@@ -2,8 +2,8 @@ use std::path::{Path, PathBuf};
 use log::{debug, info, warn, error};
 
 use crate::domain::classify::DocumentKind;
-use crate::domain::guide::InssGuide;
-use crate::domain::receipt::{self, PaymentReceipt};
+use crate::domain::guide::ParsedGuide;
+use crate::domain::receipt::{self, ParsedReceipt};
 use crate::domain::{classify, guide};
 use crate::infra::persistence::store_receipt;
 use crate::infra::{fs, ocr, pdf, persistence};
@@ -59,7 +59,7 @@ pub fn process_file(path: PathBuf) {
 pub fn handle_inss_guide(path: PathBuf, text: &str) {
     info!("event=inss_guide_processing_started path={:?}", path);
 
-    let guide: InssGuide = match guide::parse_guide(&text) {
+    let guide: ParsedGuide = match guide::parse_guide(&text) {
         Ok(g) => g,
         Err(e) => {
             warn!("event=parsing_failed path={:?} error={}", path, e);
@@ -84,7 +84,7 @@ pub fn handle_payment_receipt(path: PathBuf, text: &str) {
         text
     );
 
-    let receipt: PaymentReceipt = match receipt::parse_receipt(&text) {
+    let receipt: ParsedReceipt = match receipt::parse_receipt(&text) {
         Ok(r) => r,
         Err(e) => {
             warn!("event=parsing_failed path={:?} error={}", path, e);
@@ -102,7 +102,7 @@ pub fn handle_payment_receipt(path: PathBuf, text: &str) {
     try_match_receipt(&receipt, &path);
 }
 
-fn try_match_guide(guide: &InssGuide, path: &Path) {
+fn try_match_guide(guide: &ParsedGuide, path: &Path) {
     if let Some(receipt) = persistence::find_matching_receipt(guide) {
         info!("event=matching_resource_found path={:?}", receipt.path);
         fs::move_pair(path, &receipt.path);
@@ -112,7 +112,7 @@ fn try_match_guide(guide: &InssGuide, path: &Path) {
     }
 }
 
-fn try_match_receipt(receipt: &PaymentReceipt, path: &Path) {
+fn try_match_receipt(receipt: &ParsedReceipt, path: &Path) {
     if let Some(guide) = persistence::find_matching_guide(receipt) {
         info!("event=matching_resource_found path={:?}", guide.path);
         fs::move_pair(path, &guide.path);

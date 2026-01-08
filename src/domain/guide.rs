@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use anyhow::Context;
 use crate::domain::money::Money;
 
@@ -8,16 +10,25 @@ pub struct ReferencePeriod {
 }
 
 #[derive(Debug, Clone)]
-pub struct InssGuide {
+pub struct ParsedGuide {
     pub reference_num: String,
     pub contributor_num: String,
     pub reference_period: ReferencePeriod,
     pub amount: Money,
 }
 
-pub fn parse_guide(text: &str) -> anyhow::Result<InssGuide> {
+#[derive(Debug, Clone)]
+pub struct InssGuide {
+    pub reference_num: String,
+    pub contributor_num: String,
+    pub reference_period: ReferencePeriod,
+    pub amount: Money,
+    path: PathBuf,
+}
+
+pub fn parse_guide(text: &str) -> anyhow::Result<ParsedGuide> {
     Ok(
-        InssGuide { 
+        ParsedGuide { 
             reference_num: extract_guide_reference(text).context("missing guide reference")?, 
             contributor_num: extract_contributor_num(text).context("missing contributor number")?,
             reference_period: extract_reference_period(text).context("missing reference period")?, 

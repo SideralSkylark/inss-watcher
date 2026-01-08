@@ -1,9 +1,9 @@
 use chrono::NaiveDate;
 
-use crate::domain::{guide::{InssGuide, ReferencePeriod}, receipt::PaymentReceipt};
+use crate::domain::{guide::{ParsedGuide, ReferencePeriod}, receipt::ParsedReceipt};
 
 // assumes that guides are paid in time (no aditional charges)
-pub fn match_docs(guide: &InssGuide, receipt: &PaymentReceipt) -> bool {
+pub fn match_docs(guide: &ParsedGuide, receipt: &ParsedReceipt) -> bool {
     guide.reference_num == receipt.reference_num
     && guide.amount.cents == receipt.amount.cents
     && within_period(guide.reference_period, receipt.payment_date)

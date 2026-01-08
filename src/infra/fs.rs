@@ -35,6 +35,14 @@ pub fn move_unique(src: &Path, dest: &Path) -> anyhow::Result<()> {
     Ok(())
 }
 
+pub fn move_pair(guide: &Path, receipt: &Path) {
+
+}
+
+pub fn quarentine(resource: &Path) -> PathBuf {
+    PathBuf::new()
+}
+
 pub fn inss_output_dir(month: u32, year: u32, contributor_num: &str) -> PathBuf {
     let mut base = dirs::document_dir()
         .or_else(dirs::home_dir)
