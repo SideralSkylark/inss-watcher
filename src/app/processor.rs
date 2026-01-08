@@ -1,11 +1,10 @@
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use log::{debug, info, warn, error};
 
 use crate::domain::classify::DocumentKind;
-use crate::domain::guide::ParsedGuide;
-use crate::domain::receipt::{self, ParsedReceipt};
+use crate::domain::guide::{InssGuide, ParsedGuide};
+use crate::domain::receipt::{self, ParsedReceipt, PaymentReceipt};
 use crate::domain::{classify, guide};
-use crate::infra::persistence::store_receipt;
 use crate::infra::{fs, ocr, pdf, persistence};
 
 pub fn process_file(path: PathBuf) {
@@ -59,22 +58,23 @@ pub fn process_file(path: PathBuf) {
 pub fn handle_inss_guide(path: PathBuf, text: &str) {
     info!("event=inss_guide_processing_started path={:?}", path);
 
-    let guide: ParsedGuide = match guide::parse_guide(&text) {
-        Ok(g) => g,
+    let parsed: ParsedGuide = match guide::parse_guide(&text) {
+        Ok(p) => p,
         Err(e) => {
             warn!("event=parsing_failed path={:?} error={}", path, e);
             return;
         },
     };
 
-    if persistence::guide_exists(&guide) {
+    if persistence::guide_exists(&parsed) {
         info!("event=resource_already_exists path={:?}", path);
         return;
     }
 
+    let guide: InssGuide = (parsed, path).into();
     persistence::store_guide(&guide);
 
-    try_match_guide(&guide, &path)
+    try_match_guide(&guide)
 }
 
 pub fn handle_payment_receipt(path: PathBuf, text: &str) {
@@ -84,7 +84,7 @@ pub fn handle_payment_receipt(path: PathBuf, text: &str) {
         text
     );
 
-    let receipt: ParsedReceipt = match receipt::parse_receipt(&text) {
+    let parsed: ParsedReceipt = match receipt::parse_receipt(&text) {
         Ok(r) => r,
         Err(e) => {
             warn!("event=parsing_failed path={:?} error={}", path, e);
@@ -92,32 +92,33 @@ pub fn handle_payment_receipt(path: PathBuf, text: &str) {
         },
     };
 
-    if persistence::receipt_exists(&receipt) {
+    if persistence::receipt_exists(&parsed) {
         info!("event=resource_already_exists path={:?}", path);
         return;
     }
 
-    store_receipt(&receipt);
+    let receipt: PaymentReceipt = (parsed, path).into();
+    persistence::store_receipt(&receipt);
 
-    try_match_receipt(&receipt, &path);
+    try_match_receipt(&receipt);
 }
 
-fn try_match_guide(guide: &ParsedGuide, path: &Path) {
+fn try_match_guide(guide: &InssGuide) {
     if let Some(receipt) = persistence::find_matching_receipt(guide) {
         info!("event=matching_resource_found path={:?}", receipt.path);
-        fs::move_pair(path, &receipt.path);
+        fs::move_pair(&guide.path, &receipt.path);
     } else {
-        let dest = fs::quarentine(path);
-        info!("event=no_matches_found event=guide_moved src={:?} dest={:?}", path, dest);
+        let dest = fs::quarentine(&guide.path);
+        info!("event=no_matches_found event=guide_moved src={:?} dest={:?}", guide.path, dest);
     }
 }
 
-fn try_match_receipt(receipt: &ParsedReceipt, path: &Path) {
+fn try_match_receipt(receipt: &PaymentReceipt) {
     if let Some(guide) = persistence::find_matching_guide(receipt) {
         info!("event=matching_resource_found path={:?}", guide.path);
-        fs::move_pair(path, &guide.path);
+        fs::move_pair(&receipt.path, &guide.path);
     } else {
-        let dest = fs::quarentine(path);
-        info!("event=no_matches_found event=guide_moved src={:?} dest={:?}", path, dest);
+        let dest = fs::quarentine(&receipt.path);
+        info!("event=no_matches_found event=guide_moved src={:?} dest={:?}", receipt.path, dest);
     }
 }

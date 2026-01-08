@@ -23,7 +23,19 @@ pub struct InssGuide {
     pub contributor_num: String,
     pub reference_period: ReferencePeriod,
     pub amount: Money,
-    path: PathBuf,
+    pub path: PathBuf,
+}
+
+impl From<(ParsedGuide, PathBuf)> for InssGuide {
+    fn from((parsed, path): (ParsedGuide, PathBuf)) -> Self {
+        Self {
+            reference_num: parsed.reference_num,
+            contributor_num: parsed.contributor_num,
+            reference_period: parsed.reference_period,
+            amount: parsed.amount,
+            path,
+        }
+    }
 }
 
 pub fn parse_guide(text: &str) -> anyhow::Result<ParsedGuide> {

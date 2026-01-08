@@ -11,13 +11,23 @@ pub struct ParsedReceipt {
     pub amount: Money,
 }
 
-
 #[derive(Debug, Clone)]
 pub struct PaymentReceipt {
     pub reference_num: String,
     pub payment_date: NaiveDate,
     pub amount: Money,
     pub path: PathBuf,
+}
+
+impl From<(ParsedReceipt, PathBuf)> for PaymentReceipt {
+    fn from((parsed, path): (ParsedReceipt, PathBuf)) -> Self {
+        Self {
+            reference_num: parsed.reference_num,
+            payment_date: parsed.payment_date,
+            amount: parsed.amount,
+            path,
+        }
+    }
 }
 
 pub fn parse_receipt(text: &str) -> anyhow::Result<ParsedReceipt> {
