@@ -12,6 +12,7 @@
       in pkgs.mkShell {
         buildInputs = with pkgs; [
           tesseract
+          sqlite
           poppler-utils
           pkg-config 
         ];

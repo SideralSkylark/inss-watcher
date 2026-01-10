@@ -9,7 +9,7 @@ pub fn match_docs(guide: &ParsedGuide, receipt: &ParsedReceipt) -> bool {
     && within_period(guide.reference_period, receipt.payment_date)
 }
 
-fn within_period(reference_period: ReferencePeriod, payment_date: NaiveDate) -> bool {
+pub fn within_period(reference_period: ReferencePeriod, payment_date: NaiveDate) -> bool {
     let deadline = payment_deadline(reference_period);
 
     payment_date <= deadline
