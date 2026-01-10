@@ -2,6 +2,9 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use anyhow::Ok;
 
+use crate::domain::guide::InssGuide;
+use crate::domain::receipt::PaymentReceipt;
+
 pub fn ensure_dir(path: &Path) -> std::io::Result<()> {
     fs::create_dir_all(path)
 }
@@ -35,15 +38,55 @@ pub fn move_unique(src: &Path, dest: &Path) -> anyhow::Result<()> {
     Ok(())
 }
 
-pub fn move_pair(guide: &Path, receipt: &Path) {
+pub fn move_pair(guide: &InssGuide, receipt: &PaymentReceipt) {
+    if !guide.path.exists() || !receipt.path.exists() {
+        return;
+    } 
 
+    let output_dir = inss_output_dir(guide.reference_period.month, guide.reference_period.year, &guide.contributor_num);
+
+    if let Err(e) = ensure_dir(&output_dir) {
+        log::error!("event=fs_error stage=ensure_dir error={}", e);
+        return;
+    }
+
+    let guide_dest = output_dir.join(guide.path.file_name().unwrap());
+    let receipt_dest = output_dir.join(receipt.path.file_name().unwrap());
+
+    if let Err(e) = move_unique(&guide.path, &guide_dest) {
+        log::error!("event=fs_error stage=move_guide error={}", e);
+    }
+
+    if let Err(e) = move_unique(&receipt.path, &receipt_dest) {
+        log::error!("event=fs_error stage=move_receipt error={}", e);
+    }
 }
 
-pub fn quarentine(resource: &Path) -> PathBuf {
-    PathBuf::new()
+pub fn quarentine(src: &Path) -> anyhow::Result<PathBuf> {
+    if !src.exists() {
+        return Ok(src.to_path_buf());
+    }
+
+    let mut base = dirs::document_dir()
+        .or_else(dirs::home_dir)
+        .unwrap();
+
+    base.push("INSS");
+    base.push("quarentine");
+
+    ensure_dir(&base);
+
+    let file_name = src.file_name()
+        .ok_or_else(|| anyhow::anyhow!("invalid source file"))?;
+
+    let dest = base.join(file_name);
+
+    move_unique(src, &dest)?;
+
+    Ok(dest)
 }
 
-pub fn inss_output_dir(month: u32, year: u32, contributor_num: &str) -> PathBuf {
+pub fn inss_output_dir(month: u8, year: u16, contributor_num: &str) -> PathBuf {
     let mut base = dirs::document_dir()
         .or_else(dirs::home_dir)
         .unwrap();

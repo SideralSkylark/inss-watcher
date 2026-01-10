@@ -5,6 +5,7 @@ use crate::domain::classify::DocumentKind;
 use crate::domain::guide::{InssGuide, ParsedGuide};
 use crate::domain::receipt::{self, ParsedReceipt, PaymentReceipt};
 use crate::domain::{classify, guide};
+use crate::infra::persistence::StoreOutcome;
 use crate::infra::{fs, ocr, pdf, persistence};
 
 pub fn process_file(path: PathBuf) {
@@ -72,9 +73,19 @@ pub fn handle_inss_guide(path: PathBuf, text: &str) {
     }
 
     let guide: InssGuide = (parsed, path).into();
-    persistence::store_guide(&guide);
+    
+    let outcome = match persistence::store_guide(&guide) {
+        Ok(o) => o,
+        Err(e) => {
+            error!("event=storing_failed kind=guide path={:?} error={}", guide.path, e);
+            return;
+        },
+    };
 
-    try_match_guide(&guide)
+    if matches!(outcome, StoreOutcome::Inserted) {
+        info!("event=guide_stored path={:?}", guide.path);
+        try_match_guide(&guide);
+    }
 }
 
 pub fn handle_payment_receipt(path: PathBuf, text: &str) {
@@ -98,15 +109,25 @@ pub fn handle_payment_receipt(path: PathBuf, text: &str) {
     }
 
     let receipt: PaymentReceipt = (parsed, path).into();
-    persistence::store_receipt(&receipt);
 
-    try_match_receipt(&receipt);
+    let outcome = match persistence::store_receipt(&receipt) {
+        Ok(o) => o,
+        Err(e) => {
+            error!("event=storing_failed kind=guide error={} path={:?}", e, receipt.path);
+            return;
+        },
+    };
+
+    if matches!(outcome, StoreOutcome::Inserted) {
+        info!("event=receipt_stored path={:?}", receipt.path);
+        try_match_receipt(&receipt);
+    }
 }
 
 fn try_match_guide(guide: &InssGuide) {
     if let Some(receipt) = persistence::find_matching_receipt(guide) {
         info!("event=matching_resource_found path={:?}", receipt.path);
-        fs::move_pair(&guide.path, &receipt.path);
+        fs::move_pair(&guide, &receipt);
     } else {
         let dest = fs::quarentine(&guide.path);
         info!("event=no_matches_found event=guide_moved src={:?} dest={:?}", guide.path, dest);
@@ -116,7 +137,7 @@ fn try_match_guide(guide: &InssGuide) {
 fn try_match_receipt(receipt: &PaymentReceipt) {
     if let Some(guide) = persistence::find_matching_guide(receipt) {
         info!("event=matching_resource_found path={:?}", guide.path);
-        fs::move_pair(&receipt.path, &guide.path);
+        fs::move_pair(&guide, &receipt);
     } else {
         let dest = fs::quarentine(&receipt.path);
         info!("event=no_matches_found event=guide_moved src={:?} dest={:?}", receipt.path, dest);
