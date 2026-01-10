@@ -16,9 +16,9 @@
 - [] RF09: Maintain symbolic link or record in original location (optional)
 
 ### Matching System
-- [] RF10: Store metadata of processed guides
-- [] RF11: Match incoming payments with existing guides
-- [] RF12: Move matched pairs to final organized location
+- [x] RF10: Store metadata of processed guides
+- [x] RF11: Match incoming payments with existing guides
+- [x] RF12: Move matched pairs to final organized location
 - [] RF13: Retain unmatched guides for future matching (configurable period)
 - [] RF14: Clean up old unmatched records
 

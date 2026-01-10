@@ -1,18 +1,16 @@
 use std::fs;
 use std::path::{Path, PathBuf};
-use anyhow::Ok;
 
 use crate::domain::guide::InssGuide;
 use crate::domain::receipt::PaymentReceipt;
-use crate::infra::persistence;
 
 pub fn ensure_dir(path: &Path) -> std::io::Result<()> {
     fs::create_dir_all(path)
 }
 
-pub fn move_unique(src: &Path, dest: &Path) -> anyhow::Result<()> {
+pub fn move_unique(src: &Path, dest: &Path) -> anyhow::Result<PathBuf> {
     if !src.exists() {
-        return Ok(());
+        return Ok(src.to_path_buf());
     }
     
     let parent = dest.parent().unwrap_or_else(|| Path::new(""));
@@ -36,7 +34,7 @@ pub fn move_unique(src: &Path, dest: &Path) -> anyhow::Result<()> {
     }
 
     fs::rename(src, &dest_path)?;
-    Ok(())
+    Ok(dest_path)
 }
 
 pub fn move_pair(guide: &InssGuide, receipt: &PaymentReceipt) {
@@ -70,19 +68,21 @@ pub fn quarentine(src: &Path) -> anyhow::Result<PathBuf> {
 
     let mut base = dirs::document_dir()
         .or_else(dirs::home_dir)
-        .unwrap();
+        .ok_or_else(|| anyhow::anyhow!("no home dir"))?;
 
     base.push("INSS");
     base.push("quarentine");
 
-    ensure_dir(&base);
+    ensure_dir(&base)?;
 
     let file_name = src
         .file_name()
         .ok_or_else(|| anyhow::anyhow!("invalid source file"))?;
 
     let dest = base.join(file_name);
-    move_unique(src, &dest)
+    let final_path = move_unique(src, &dest)?;
+
+    Ok(final_path)
 }
 
 pub fn inss_output_dir(month: u8, year: u16, contributor_num: &str) -> PathBuf {
