@@ -1,3 +1,4 @@
+use std::path::Path;
 use std::sync::{OnceLock, Mutex};
 
 use anyhow::{Result, Context};
@@ -174,3 +175,18 @@ pub fn find_matching_guide(receipt: &PaymentReceipt) -> Option<InssGuide> {
 
     None
 }
+
+pub fn update_path(old_path: &Path, new_path: &Path) -> anyhow::Result<()> {
+    let c = conn();
+
+    c.execute(
+        "UPDATE documents SET path=?1 WHERE path=?2",
+        params![
+            new_path.to_string_lossy(),
+            old_path.to_string_lossy()
+        ],
+    )?;
+
+    Ok(())
+}
+

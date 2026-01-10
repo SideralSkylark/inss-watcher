@@ -4,6 +4,7 @@ use anyhow::Ok;
 
 use crate::domain::guide::InssGuide;
 use crate::domain::receipt::PaymentReceipt;
+use crate::infra::persistence;
 
 pub fn ensure_dir(path: &Path) -> std::io::Result<()> {
     fs::create_dir_all(path)
@@ -76,14 +77,12 @@ pub fn quarentine(src: &Path) -> anyhow::Result<PathBuf> {
 
     ensure_dir(&base);
 
-    let file_name = src.file_name()
+    let file_name = src
+        .file_name()
         .ok_or_else(|| anyhow::anyhow!("invalid source file"))?;
 
     let dest = base.join(file_name);
-
-    move_unique(src, &dest)?;
-
-    Ok(dest)
+    move_unique(src, &dest)
 }
 
 pub fn inss_output_dir(month: u8, year: u16, contributor_num: &str) -> PathBuf {

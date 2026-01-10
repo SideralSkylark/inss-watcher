@@ -50,10 +50,14 @@ fn extract_payment_date(text: &str) -> Option<NaiveDate> {
 }
 
 fn extract_amount(text: &str) -> Option<Money> {
-    let re = regex::Regex::new(r"Montante pagamento\s+([\d.,]+)").ok()?;
+    let re = regex::Regex::new(
+        r"Montante pagamento\s*[-–—:]?\s*([\d.,]+)"
+    ).ok()?;
+
     let raw = re.captures(text)?.get(1)?.as_str();
     Money::from_str(raw)
 }
+
 
 #[cfg(test)]
 mod tests {
@@ -141,6 +145,17 @@ mod tests {
 
         assert_eq!(amount.cents, 69875);
     }
+
+    #[test]
+    fn extracts_payment_amount_with_em_dash() {
+        let text = "
+            Montante pagamento — 698,75
+        ";
+
+        let amount = extract_amount(text).unwrap();
+        assert_eq!(amount.cents, 69875);
+    }
+
 
     #[test]
     fn extracts_payment_amount_with_thousands_separator() {

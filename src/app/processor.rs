@@ -129,8 +129,11 @@ fn try_match_guide(guide: &InssGuide) {
         info!("event=matching_resource_found path={:?}", receipt.path);
         fs::move_pair(&guide, &receipt);
     } else {
-        let dest = fs::quarentine(&guide.path);
-        info!("event=no_matches_found event=guide_moved src={:?} dest={:?}", guide.path, dest);
+        if let Ok(new_path) = fs::quarentine(&guide.path) {
+            if let Err(e) = persistence::update_path(&guide.path, &new_path) {
+                error!("event=db_error stage=update_path error={}", e);
+            }
+        }
     }
 }
 
@@ -139,7 +142,10 @@ fn try_match_receipt(receipt: &PaymentReceipt) {
         info!("event=matching_resource_found path={:?}", guide.path);
         fs::move_pair(&guide, &receipt);
     } else {
-        let dest = fs::quarentine(&receipt.path);
-        info!("event=no_matches_found event=guide_moved src={:?} dest={:?}", receipt.path, dest);
+        if let Ok(new_path) = fs::quarentine(&receipt.path) {
+            if let Err(e) = persistence::update_path(&receipt.path, &new_path) {
+                error!("event=db_error stage=update_path error={}", e);
+            }
+        }
     }
 }
