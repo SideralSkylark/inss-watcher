@@ -2,7 +2,7 @@ use std::path::Path;
 use std::sync::{OnceLock, Mutex};
 
 use anyhow::{Result, Context};
-use rusqlite::{Connection, params};
+use rusqlite::{Connection, Transaction, params};
 use chrono::NaiveDate;
 
 use crate::domain::guide::{InssGuide, ParsedGuide, ReferencePeriod};
@@ -35,6 +35,28 @@ fn conn() -> std::sync::MutexGuard<'static, Connection> {
         .expect("database not initialized: call persistence::init() first")
         .lock()
         .expect("database mutex poisoned")
+}
+
+pub fn transaction<F, T>(f: F) -> anyhow::Result<T>
+where
+    F: FnOnce(&Transaction) -> anyhow::Result<T>,
+{
+    let mut c = conn();
+
+    let tx = c
+        .transaction()
+        .context("failed to start transaction")?;
+
+    match f(&tx) {
+        Ok(result) => {
+            tx.commit().context("failed to commit transaction")?;
+            Ok(result)
+        }
+        Err(e) => {
+            tx.rollback().ok(); // best effort
+            Err(e)
+        }
+    }
 }
 
 pub fn guide_exists(guide: &ParsedGuide) -> bool {
@@ -180,6 +202,22 @@ pub fn update_path(old_path: &Path, new_path: &Path) -> anyhow::Result<()> {
     let c = conn();
 
     c.execute(
+        "UPDATE documents SET path=?1 WHERE path=?2",
+        params![
+            new_path.to_string_lossy(),
+            old_path.to_string_lossy()
+        ],
+    )?;
+
+    Ok(())
+}
+
+pub fn update_path_tx(
+    tx: &rusqlite::Transaction,
+    old_path: &Path,
+    new_path: &Path,
+) -> anyhow::Result<()> {
+    tx.execute(
         "UPDATE documents SET path=?1 WHERE path=?2",
         params![
             new_path.to_string_lossy(),

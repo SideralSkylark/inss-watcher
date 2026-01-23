@@ -1,13 +1,22 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
+use anyhow::Context;
+
 use crate::domain::guide::InssGuide;
 use crate::domain::receipt::PaymentReceipt;
+
+pub struct MovedPairPaths {
+    pub guide_path: PathBuf,
+    pub receipt_path: PathBuf,
+}
 
 pub fn ensure_dir(path: &Path) -> std::io::Result<()> {
     fs::create_dir_all(path)
 }
 
+/// Moves `src` to `dest`, generating a unique name if needed.
+/// If `src` does not exist, returns `src` unchanged.
 pub fn move_unique(src: &Path, dest: &Path) -> anyhow::Result<PathBuf> {
     if !src.exists() {
         return Ok(src.to_path_buf());
@@ -25,8 +34,8 @@ pub fn move_unique(src: &Path, dest: &Path) -> anyhow::Result<PathBuf> {
 
     while dest_path.exists() {
         let new_name = match extension {
-            Some(ext) => format!("{}({}).{}", file_stem, counter, ext),
-            None => format!("{}({})", file_stem, counter),
+            Some(ext) => format!("{file_stem}({counter}).{ext}"),
+            None => format!("{file_stem}({counter})"),
         };
 
         dest_path = parent.join(new_name);
@@ -37,30 +46,39 @@ pub fn move_unique(src: &Path, dest: &Path) -> anyhow::Result<PathBuf> {
     Ok(dest_path)
 }
 
-pub fn move_pair(guide: &InssGuide, receipt: &PaymentReceipt) {
+/// moves a guide + receipt pair.
+/// If moving the receipt fails, the guide move is rolled back.
+pub fn move_pair(guide: &InssGuide, receipt: &PaymentReceipt) -> anyhow::Result<MovedPairPaths>{
     if !guide.path.exists() || !receipt.path.exists() {
-        return;
+        anyhow::bail!("event=missing_paths stage=move_pair_path_check");
     } 
 
     let output_dir = inss_output_dir(guide.reference_period.month, guide.reference_period.year, &guide.contributor_num);
 
-    if let Err(e) = ensure_dir(&output_dir) {
-        log::error!("event=fs_error stage=ensure_dir error={}", e);
-        return;
-    }
+    ensure_dir(&output_dir)?;
 
     let guide_dest = output_dir.join(guide.path.file_name().unwrap());
     let receipt_dest = output_dir.join(receipt.path.file_name().unwrap());
 
-    if let Err(e) = move_unique(&guide.path, &guide_dest) {
-        log::error!("event=fs_error stage=move_guide error={}", e);
-    }
+    let new_guide_path = move_unique(&guide.path, &guide_dest).context("failed to move guide")?;
 
-    if let Err(e) = move_unique(&receipt.path, &receipt_dest) {
-        log::error!("event=fs_error stage=move_receipt error={}", e);
-    }
+    let new_receipt_path = match move_unique(&receipt.path, &receipt_dest) {
+        Ok(p) => p,
+        Err(e) => {
+            if let Err(rb) = fs::rename(&new_guide_path, &guide.path) {
+                log::error!("event=rollback_failed stage=restore_guide error={}", rb);
+            }
+            return Err(e.context("failed to move pair"));
+        }
+    };
+
+    Ok(MovedPairPaths { 
+        guide_path: new_guide_path, 
+        receipt_path: new_receipt_path, 
+    })
 }
 
+/// Moves a single file to quarantine and returns the final path.
 pub fn quarentine(src: &Path) -> anyhow::Result<PathBuf> {
     if !src.exists() {
         return Ok(src.to_path_buf());
@@ -85,6 +103,7 @@ pub fn quarentine(src: &Path) -> anyhow::Result<PathBuf> {
     Ok(final_path)
 }
 
+/// computes the output directory for a resouce given its metadata
 pub fn inss_output_dir(month: u8, year: u16, contributor_num: &str) -> PathBuf {
     let mut base = dirs::document_dir()
         .or_else(dirs::home_dir)

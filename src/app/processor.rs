@@ -5,6 +5,7 @@ use crate::domain::classify::DocumentKind;
 use crate::domain::guide::{InssGuide, ParsedGuide};
 use crate::domain::receipt::{self, ParsedReceipt, PaymentReceipt};
 use crate::domain::{classify, guide};
+use crate::infra::fs::MovedPairPaths;
 use crate::infra::persistence::StoreOutcome;
 use crate::infra::{fs, ocr, pdf, persistence};
 
@@ -127,7 +128,15 @@ pub fn handle_payment_receipt(path: PathBuf, text: &str) {
 fn try_match_guide(guide: &InssGuide) {
     if let Some(receipt) = persistence::find_matching_receipt(guide) {
         info!("event=matching_resource_found path={:?}", receipt.path);
-        fs::move_pair(&guide, &receipt);
+
+        match fs::move_pair(&guide, &receipt) {
+            Ok(moved) => {
+                persist_moved_pair(&guide, &receipt, moved);
+            } 
+            Err(e) => {
+                error!("event=fs_pair_move_failed error={}", e);
+            }
+        }
     } else {
         if let Ok(new_path) = fs::quarentine(&guide.path) {
             if let Err(e) = persistence::update_path(&guide.path, &new_path) {
@@ -140,12 +149,29 @@ fn try_match_guide(guide: &InssGuide) {
 fn try_match_receipt(receipt: &PaymentReceipt) {
     if let Some(guide) = persistence::find_matching_guide(receipt) {
         info!("event=matching_resource_found path={:?}", guide.path);
-        fs::move_pair(&guide, &receipt);
+                match fs::move_pair(&guide, &receipt) {
+            Ok(moved) => {
+                persist_moved_pair(&guide, &receipt, moved);
+            } 
+            Err(e) => {
+                error!("event=fs_pair_move_failed error={}", e);
+            }
+        }
     } else {
         if let Ok(new_path) = fs::quarentine(&receipt.path) {
             if let Err(e) = persistence::update_path(&receipt.path, &new_path) {
                 error!("event=db_error stage=update_path error={}", e);
             }
         }
+    }
+}
+
+fn persist_moved_pair(guide: &InssGuide, receipt: &PaymentReceipt, moved: MovedPairPaths) {
+    if let Err(e) = persistence::transaction(|tx| {
+        persistence::update_path_tx(tx, &guide.path, &moved.guide_path)?;
+        persistence::update_path_tx(tx, &receipt.path, &moved.receipt_path)?;
+        Ok(())
+    }) {
+        error!("event=db_transaction_failed error={}", e);
     }
 }
