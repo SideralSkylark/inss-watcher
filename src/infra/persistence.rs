@@ -59,6 +59,8 @@ where
     }
 }
 
+/// checks for another guide with the same reference number, contributor_num, and reference
+/// period(month & year)
 pub fn guide_exists(guide: &ParsedGuide) -> bool {
     let c = conn();
     let mut stmt = c.prepare(
@@ -100,7 +102,7 @@ pub fn store_guide(guide: &InssGuide) -> anyhow::Result<StoreOutcome> {
     Ok(if rows == 0 { StoreOutcome::AlreadyExists } else { StoreOutcome::Inserted })
 }
 
-
+/// checks for another receipt with the same reference number and amount
 pub fn receipt_exists(receipt: &ParsedReceipt) -> bool {
     let c = conn();
     let mut stmt = c.prepare(
@@ -212,6 +214,7 @@ pub fn update_path(old_path: &Path, new_path: &Path) -> anyhow::Result<()> {
     Ok(())
 }
 
+/// updates a resource's path using a database transaction
 pub fn update_path_tx(
     tx: &rusqlite::Transaction,
     old_path: &Path,

@@ -66,17 +66,17 @@ pub fn extract_contributor_num(text: &str) -> Option<String> {
     Some(caps[1].to_string())
 }
 
-fn extract_reference_period(text: &str) -> Option<ReferencePeriod> {
-    let re = regex::Regex::new(r"(0?[1-9]|1[0-2])/(\d{4})").ok()?;
+fn extract_reference_period(text: &str) -> Option<ReferencePeriod> { 
+    let re = regex::Regex::new(r"(0?[1-9]|1[0-2])/(\d{4})").ok()?; 
 
     re.captures_iter(text)
-        .last()
-        .and_then(|cap| {
-            Some(ReferencePeriod {
-                month: cap[1].parse().ok()?,
-                year: cap[2].parse().ok()?,
-            })
-        })
+        .last() 
+        .and_then(|cap| { 
+            Some(ReferencePeriod { 
+                month: cap[1].parse().ok()?, 
+                year: cap[2].parse().ok()?, 
+            }) 
+        }) 
 }
 
 fn extract_amount(text: &str) -> Option<Money> {
@@ -199,7 +199,15 @@ mod tests {
 
     #[test]
     fn parse_guide_fails_when_reference_missing() {
-        let text = "721,70 MT 10/2025";
+        let text = r#"
+            Guia de Pagamento de Contribuição - GPC
+            915732100
+            Número do Contribuinte
+            721,70 MT
+            Valor Total da Guia
+            Data limite de PagamentoNúmero da Guia
+            03/11/2025 14:4610/2025
+        "#;
 
         let err = parse_guide(text).unwrap_err();
 
@@ -208,10 +216,15 @@ mod tests {
 
     #[test]
     fn parse_guide_fails_when_contributor_missing() {
-        let text = "
+        let text = r#"
             Guia de Pagamento de Contribuição - GPC
             Número do Contribuinte
-            ";
+            721,70 MT
+            Valor Total da Guia
+            Data limite de PagamentoNúmero da Guia
+            115320342
+            03/11/2025 14:4610/2025
+        "#;
 
         let err = parse_guide(text).unwrap_err();
 
@@ -221,9 +234,14 @@ mod tests {
     #[test]
     fn parse_guide_fails_when_reference_period_missing() {
         let text = r#"
+            Guia de Pagamento de Contribuição - GPC
+            915732100
+            Número do Contribuinte
+            721,70 MT
+            Valor Total da Guia
             Data limite de PagamentoNúmero da Guia
             115320342
-            721,70 MT
+            03/11/2025 14:46
         "#;
 
         let err = parse_guide(text).unwrap_err();
@@ -234,9 +252,13 @@ mod tests {
     #[test]
     fn parse_guide_fails_when_amount_missing() {
         let text = r#"
+            Guia de Pagamento de Contribuição - GPC
+            915732100
+            Número do Contribuinte
+            Valor Total da Guia
             Data limite de PagamentoNúmero da Guia
             115320342
-            10/2025
+            03/11/2025 14:4610/2025
         "#;
 
         let err = parse_guide(text).unwrap_err();
