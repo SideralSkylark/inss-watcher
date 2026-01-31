@@ -1,5 +1,5 @@
 use std::path::PathBuf;
-use tracing::{debug, info, warn, error};
+use tracing::{Span, debug, error, info, instrument, warn};
 
 use crate::domain::classify::DocumentKind;
 use crate::domain::guide::{InssGuide, ParsedGuide};
@@ -9,50 +9,64 @@ use crate::infra::fs::MovedPairPaths;
 use crate::infra::persistence::StoreOutcome;
 use crate::infra::{fs, ocr, pdf, persistence};
 
+#[instrument(
+    name = "process_file",
+    skip(path),
+    fields(
+        file = %path.display(),
+        file_name = ?path.file_name(),
+        doc_type = tracing::field::Empty
+    )
+)]
 pub fn process_file(path: PathBuf) {
-    info!("event=file_processing_started path={:?}", path);
+    info!("starting file processing");
 
     let mut text = match pdf::extract_text(&path) {
         Ok(t) => t,
         Err(e) => {
-            error!("event=processing_failed stage=pdf_extract path={:?} error={}", path, e);
+            error!(stage = "pdf_extract", error = %e, "failed to extract text from PDF");
             return;
         }
     };
 
     if text.trim().is_empty() {
-        info!("event=ocr_fallback reason=empty_pdf_text path={:?}", path);
+        info!(reason = "empty_pdf", "attempting OCR fallback");
 
         let img_path = match pdf::pdf_to_img(&path) {
             Ok(p) => p,
             Err(e) => {
-                error!("event=processing_failed stage=pdf_render path={:?} error={}", path, e);
-            return;
+                error!(stage = "pdf_to_image", error = %e, "failed to render PDF to image");
+                return;
             }
         };
 
         match ocr::extract_text(&img_path) {
             Ok(ocr_text) => {
-                debug!("event=ocr_completed path={:?} text_len={}", img_path, ocr_text.len());
+                debug!(temp_file = %img_path.display(), chars = ocr_text.len(), "OCR extraction sucessfull");
                 text = ocr_text;
             },
             Err(e) => {
-                error!("event=processing_failed stage=ocr path={:?} error={}", img_path, e);
+                error!(stage = "OCR", temp_file = %img_path.display(), error = %e, "OCR extraction failed");
                 return;
             }
         };
 
-        let _ = std::fs::remove_file(&img_path);
+        if let Err(e) = std::fs::remove_file(&img_path) {
+            warn!(temp_file = %img_path.display(), error = %e, "failed to remove temporary file");
+        }
     }
 
     let kind = classify::classify_doc(&text);
-    debug!("event=document_classified path={:?} kind={:?} raw_len={}", path, kind, text.len());
+
+    Span::current().record("doc_type", format!("{:?}", kind).as_str());
+
+    debug!(text_lenght = text.len(), "document classified");
 
     match kind {
         DocumentKind::InssGuide => handle_inss_guide(path, &text),
         DocumentKind::PaymentReceipt => handle_payment_receipt(path, &text),
         DocumentKind::Other => {
-            info!("event=document_ignored reason=unsupported_type path={:?}", path);
+            info!(reason = "unsupported_type", "document ignored");
         }
     }
 }

@@ -13,7 +13,7 @@ pub fn start(path: PathBuf, mut handler: impl FnMut(PathBuf)) -> anyhow::Result<
             let event = match res {
                 Ok(e) => e,
                 Err(e) => {
-                    tracing::warn!("event=watch_error error={}", e);
+                    tracing::warn!(error = %e, "wather error");
                     continue;
                 }
             };
@@ -34,7 +34,7 @@ pub fn start(path: PathBuf, mut handler: impl FnMut(PathBuf)) -> anyhow::Result<
         if wait_until_stable(&path) {
             handler(path);
         } else {
-            tracing::warn!("event=file_unstable path={:?}", path);
+            tracing::warn!(file = %path.display(), "file unstable");
         }
     }
 
