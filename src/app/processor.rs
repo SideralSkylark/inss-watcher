@@ -1,5 +1,5 @@
 use std::path::PathBuf;
-use log::{debug, info, warn, error};
+use tracing::{debug, info, warn, error};
 
 use crate::domain::classify::DocumentKind;
 use crate::domain::guide::{InssGuide, ParsedGuide};

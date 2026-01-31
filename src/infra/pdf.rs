@@ -36,7 +36,7 @@ pub fn pdf_to_img(path: &Path) -> anyhow::Result<PathBuf> {
         anyhow::bail!("pdftoppm did not generate image for {:?}", path);
     }
 
-    log::info!(
+    tracing::info!(
         "event=pdf_rendered page=1 image={:?}",
         output
     );
