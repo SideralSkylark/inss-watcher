@@ -1,5 +1,6 @@
-use inss_watcher::config::settings::Settings;
-use tracing::{info, error};
+use inss_watcher::config::Settings;
+use tracing::{info};
+use anyhow::Context;
 use inss_watcher::infra::{persistence, watch, logging};
 use inss_watcher::app::processor;
 
@@ -10,16 +11,15 @@ fn main() -> anyhow::Result<()> {
         "INSS Watcher daemon started"
     );
 
-    if let Err(e) = persistence::init("inss.db") {
-        error!(error = %e, "failed to initialize database");
-        return Err(e);
-    }
+    let settings = Settings::load()?;
+    let db_path = settings.db.path.canonicalize().unwrap_or(settings.db.path);
+
+    persistence::init(&db_path)
+        .context("database initialization failed")?;
+
     info!("database initialized");
 
-    let settings = Settings::load()?;
-
-
-    watch::start(settings.dirs_to_watch, |path| {
+    watch::start(settings.watcher.dirs_to_watch, &settings.processing, |path| {
         processor::process_file(path);
     })?;
 

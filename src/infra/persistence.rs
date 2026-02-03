@@ -1,4 +1,4 @@
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::sync::{OnceLock, Mutex};
 
 use anyhow::{Result, Context};
@@ -17,7 +17,7 @@ pub enum StoreOutcome {
 
 static DB: OnceLock<Mutex<Connection>> = OnceLock::new();
 
-pub fn init(db_path: &str) -> Result<()> {
+pub fn init(db_path: &PathBuf) -> Result<()> {
     let conn = Connection::open(db_path)
         .context("failed to open sqlite database")?;
 

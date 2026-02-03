@@ -3,6 +3,8 @@ use tracing::instrument;
 use tracing::{debug, info, warn};
 use std::{path::PathBuf, sync::mpsc, thread, time::Duration};
 
+use crate::config::settings::ProcessingSettings;
+
 #[instrument(
     name = "watcher",
     skip_all,
@@ -10,7 +12,7 @@ use std::{path::PathBuf, sync::mpsc, thread, time::Duration};
         watch_path = ?paths
     )
 )]
-pub fn start(paths: Vec<PathBuf>, mut handler: impl FnMut(PathBuf)) -> anyhow::Result<()> {
+pub fn start(paths: Vec<PathBuf>, processing: &ProcessingSettings, mut handler: impl FnMut(PathBuf)) -> anyhow::Result<()> {
     info!("starting filesystem watcher");
 
     let (tx_evt, rx_evt) = mpsc::channel();
@@ -54,7 +56,7 @@ pub fn start(paths: Vec<PathBuf>, mut handler: impl FnMut(PathBuf)) -> anyhow::R
     });
 
     for path in rx_work {
-        if wait_until_stable(&path) {
+        if wait_until_stable(&path, processing.stable_checks, processing.stable_delay_ms) {
             info!(
                 file = %path.display(),
                 "file stable, dispatching for processing"
@@ -80,10 +82,10 @@ fn is_candidate_pdf(path: &PathBuf) -> bool {
 }
 
 
-fn wait_until_stable(path: &PathBuf) -> bool {
+fn wait_until_stable(path: &PathBuf, stable_checks: usize, stable_delay_ms: u64) -> bool {
     let mut last_size = None;
 
-    for attempt in 0..6 {
+    for attempt in 0..stable_checks {
         match std::fs::metadata(path) {
             Ok(meta) => {
                 let size = meta.len();
@@ -110,7 +112,7 @@ fn wait_until_stable(path: &PathBuf) -> bool {
             }
         }
 
-        thread::sleep(Duration::from_millis(400));
+        thread::sleep(Duration::from_millis(stable_delay_ms));
     }
 
     false
