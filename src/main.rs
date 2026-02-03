@@ -1,3 +1,4 @@
+use inss_watcher::config::settings::Settings;
 use tracing::{info, error};
 use inss_watcher::infra::{persistence, watch, logging};
 use inss_watcher::app::processor;
@@ -15,12 +16,10 @@ fn main() -> anyhow::Result<()> {
     }
     info!("database initialized");
 
-    let downloads = dirs::download_dir()
-        .or_else(dirs::home_dir)
-        .ok_or_else(|| anyhow::anyhow!("No home directory found"))?;
+    let settings = Settings::load()?;
 
-    info!(path = %downloads.display(), "Watching directory");
-    watch::start(downloads.clone(), |path| {
+
+    watch::start(settings.dirs_to_watch, |path| {
         processor::process_file(path);
     })?;
 

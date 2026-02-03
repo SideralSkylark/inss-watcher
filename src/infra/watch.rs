@@ -7,24 +7,28 @@ use std::{path::PathBuf, sync::mpsc, thread, time::Duration};
     name = "watcher",
     skip_all,
     fields(
-        watch_path = %path.display()
+        watch_path = ?paths
     )
 )]
-pub fn start(path: PathBuf, mut handler: impl FnMut(PathBuf)) -> anyhow::Result<()> {
+pub fn start(paths: Vec<PathBuf>, mut handler: impl FnMut(PathBuf)) -> anyhow::Result<()> {
     info!("starting filesystem watcher");
 
     let (tx_evt, rx_evt) = mpsc::channel();
     let (tx_work, rx_work) = mpsc::channel::<PathBuf>();
 
     let mut watcher = notify::recommended_watcher(tx_evt)?;
-    watcher.watch(&path, RecursiveMode::Recursive)?;
+
+    for path in &paths {
+        watcher.watch(path, RecursiveMode::Recursive)?;
+        info!(path = %path.display(), "watching directory");
+    }
 
     thread::spawn(move || {
         for res in rx_evt {
             let event = match res {
                 Ok(e) => e,
                 Err(e) => {
-                    tracing::warn!(error = %e, "wather error");
+                    warn!(error = %e, "wather error");
                     continue;
                 }
             };
