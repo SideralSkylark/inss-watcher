@@ -5,6 +5,10 @@ use std::{path::PathBuf, sync::mpsc, thread, time::Duration};
 
 use crate::config::settings::ProcessingSettings;
 
+pub struct Event {
+    path: PathBuf
+}
+
 #[instrument(
     name = "watcher",
     skip_all,

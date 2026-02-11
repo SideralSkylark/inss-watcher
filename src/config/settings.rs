@@ -57,8 +57,8 @@ impl Settings {
     }
 
     /// Prioriry:
-    /// 1. ./config.toml
-    /// 2. ~/.config/inss-watcher/config.toml
+    /// ./config.toml
+    /// ~/.config/inss-watcher/config.toml
     fn default_config_path() -> PathBuf {
         let default_path = PathBuf::from("config.toml");
 
