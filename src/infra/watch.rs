@@ -1,13 +1,11 @@
 use notify::{EventKind, RecursiveMode, Watcher};
 use tracing::instrument;
 use tracing::{debug, info, warn};
+use std::sync::mpsc::Sender;
 use std::{path::PathBuf, sync::mpsc, thread, time::Duration};
 
 use crate::config::settings::ProcessingSettings;
-
-pub struct Event {
-    path: PathBuf
-}
+use crate::app::orchestrator::{Event, Message};
 
 #[instrument(
     name = "watcher",
@@ -16,25 +14,26 @@ pub struct Event {
         watch_path = ?paths
     )
 )]
-pub fn start(paths: Vec<PathBuf>, processing: &ProcessingSettings, mut handler: impl FnMut(PathBuf)) -> anyhow::Result<()> {
+pub fn start(paths: Vec<PathBuf>, processing: &ProcessingSettings, sender: Sender<Message>) -> anyhow::Result<()> {
     info!("starting filesystem watcher");
 
     let (tx_evt, rx_evt) = mpsc::channel();
-    let (tx_work, rx_work) = mpsc::channel::<PathBuf>();
 
-    let mut watcher = notify::recommended_watcher(tx_evt)?;
-
-    for path in &paths {
-        watcher.watch(path, RecursiveMode::Recursive)?;
-        info!(path = %path.display(), "watching directory");
-    }
+    let stable_checks = processing.stable_checks;
+    let stable_delay_ms = processing.stable_delay_ms;
 
     thread::spawn(move || {
+        let mut watcher = notify::recommended_watcher(tx_evt);
+
+        for path in &paths {
+            watcher.watch(path, RecursiveMode::Recursive)?;
+            info!(path = %path.display(), "watching directory");
+        }
         for res in rx_evt {
             let event = match res {
                 Ok(e) => e,
                 Err(e) => {
-                    warn!(error = %e, "wather error");
+                    warn!(error = %e, "watcher error");
                     continue;
                 }
             };
@@ -53,26 +52,27 @@ pub fn start(paths: Vec<PathBuf>, processing: &ProcessingSettings, mut handler: 
                         file = %path.display(),
                         "candidate PDF detected"
                     );
-                    let _ = tx_work.send(path);
+
+                    if wait_until_stable(&path, stable_checks, stable_delay_ms) {
+                        info!(
+                            file = %path.display(),
+                            "file stable, dispatching for processing"
+                        );
+                        if sender.send(Message::Event(Event { path })).is_err() {
+                            warn!("orchestrator channel closed, stopping watcher");
+                            break;
+                        }
+
+                    } else {
+                        warn!(
+                            file = %path.display(),
+                            "file did not stabilize"
+                        );
+                    }
                 }
             }
         }
     });
-
-    for path in rx_work {
-        if wait_until_stable(&path, processing.stable_checks, processing.stable_delay_ms) {
-            info!(
-                file = %path.display(),
-                "file stable, dispatching for processing"
-            );
-            handler(path);
-        } else {
-            warn!(
-                file = %path.display(),
-                "file did not stabilize"
-            );
-        }
-    }
 
     Ok(())
 }
