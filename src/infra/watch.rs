@@ -23,12 +23,23 @@ pub fn start(paths: Vec<PathBuf>, processing: &ProcessingSettings, sender: Sende
     let stable_delay_ms = processing.stable_delay_ms;
 
     thread::spawn(move || {
-        let mut watcher = notify::recommended_watcher(tx_evt);
+        let mut watcher = match notify::recommended_watcher(tx_evt) {
+            Ok(w) => w,
+            Err(e) => {
+                warn!(error=%e, "failed to create watcher");
+                return;
+            }
+        };
 
         for path in &paths {
-            watcher.watch(path, RecursiveMode::Recursive)?;
+            if let Err(e) = watcher.watch(path, RecursiveMode::Recursive) {
+                warn!(error=%e, path=%path.display(), "failed to watch directory");
+                return;
+            }
+
             info!(path = %path.display(), "watching directory");
         }
+
         for res in rx_evt {
             let event = match res {
                 Ok(e) => e,
