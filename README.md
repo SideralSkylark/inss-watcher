@@ -46,7 +46,25 @@
 - [] US06: Configure watched directories
 - [] US07: Pause/stop the daemon cleanly
 
+## Refactoring & Improvement TODOs
 
+### Concurrency & Performance
+- [ ] **Non-blocking Orchestrator**: Move `processor::process_file` to a worker thread or thread pool (e.g., using `rayon` or simple `thread::spawn`) to prevent the orchestrator's command loop from blocking during slow OCR operations.
+- [ ] **Asynchronous Stability Checks**: Move the `wait_until_stable` logic from the main watcher loop into the processing task so the watcher can continue detecting new files immediately.
+
+### Configuration & Flexibility
+- [ ] **Configurable Storage Paths**: Relocate hardcoded path logic from `infra/fs.rs` (like "INSS" and "quarentine" folders) into the `Settings` struct.
+- [ ] **Environment Variable Support**: Allow overriding configuration via environment variables (e.g., `INSS_WATCH_DIRS`).
+
+### Core Logic Improvements
+- [ ] **Robust Money Parsing**: Refactor `Money::from_str` in `domain/money.rs` to parse cents directly from strings, avoiding potential `f64` precision issues.
+- [ ] **Implement Rescan**: Complete the `orchestrator::rescan` function to scan and process all existing files in watched directories upon request or startup.
+- [ ] **Robust Startup Error Handling**: Correctly handle and log errors from `watch::start` in `orchestrator::start`, ensuring the daemon doesn't continue silently if the watcher fails.
+- [ ] **Improved Dependency Checks**: Add startup checks to ensure required external binaries (`pdftoppm`, `tesseract`) are available in the system PATH.
+
+### Monitoring & Control
+- [ ] **CLI Interface**: Implement a basic CLI (using `clap`) to send commands like `stop`, `rescan`, and `status` to the running daemon (e.g., via a local socket).
+- [ ] **Enhanced Observability**: Add a "dry-run" mode to see what files would be moved without actually moving them.
 
 ---
 1. configs(multiple dirs, policies and parameters)
