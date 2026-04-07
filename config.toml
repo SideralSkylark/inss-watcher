@@ -1,0 +1,12 @@
+[watcher]
+dirs_to_watch = [
+  "/home/skylark/Downloads",
+  "/home/skylark/Documents"
+]
+
+[db]
+path = "inss.db"
+
+[processing]
+stable_checks = 6
+stable_delay_ms = 400

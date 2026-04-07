@@ -1,0 +1,310 @@
+2026-02-03T16:47:09.033237Z  INFO inss_watcher::infra::logging: 37: Logging system started
+2026-02-03T16:47:09.033311Z  INFO inss_watcher: 8: INSS Watcher daemon started version="0.1.0"
+2026-02-03T16:47:09.034672Z  INFO inss_watcher: 17: database initialized
+2026-02-03T16:47:09.035078Z  INFO watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads"]}: inss_watcher::infra::watch: 14: starting filesystem watcher
+2026-02-03T16:47:09.045166Z  INFO watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads"]}: inss_watcher::infra::watch: 23: watching directory path=/home/skylark/Downloads
+2026-02-03T16:47:09.045678Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T16:47:09.045740Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T16:47:09.045797Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T16:47:09.045825Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T16:47:09.045860Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T16:48:14.086739Z  INFO inss_watcher::infra::logging: 37: Logging system started
+2026-02-03T16:48:14.086858Z  INFO inss_watcher: 8: INSS Watcher daemon started version="0.1.0"
+2026-02-03T16:48:14.087936Z  INFO inss_watcher: 17: database initialized
+2026-02-03T16:48:14.088389Z  INFO watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads"]}: inss_watcher::infra::watch: 14: starting filesystem watcher
+2026-02-03T16:48:14.090441Z  INFO watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads"]}: inss_watcher::infra::watch: 23: watching directory path=/home/skylark/Downloads
+2026-02-03T16:48:14.090909Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T16:48:14.090971Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T16:48:14.091002Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T16:48:14.091055Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T16:48:14.091082Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T16:48:19.460228Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T16:48:52.830611Z DEBUG inss_watcher::infra::watch: 46: candidate PDF detected file=/home/skylark/Downloads/GuiaPagamentoReport (13) (17).pdf
+2026-02-03T16:48:52.831003Z DEBUG watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads"]}: inss_watcher::infra::watch: 91: checking file stability file=/home/skylark/Downloads/GuiaPagamentoReport (13) (17).pdf attempt=0 size=113162
+2026-02-03T16:48:53.231873Z DEBUG watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads"]}: inss_watcher::infra::watch: 91: checking file stability file=/home/skylark/Downloads/GuiaPagamentoReport (13) (17).pdf attempt=1 size=113162
+2026-02-03T16:48:53.232107Z  INFO watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads"]}: inss_watcher::infra::watch: 58: file stable, dispatching for processing file=/home/skylark/Downloads/GuiaPagamentoReport (13) (17).pdf
+2026-02-03T16:48:53.232315Z  INFO watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads"]}:process_file{[3mfile[0m[2m=[0m/home/skylark/Downloads/GuiaPagamentoReport (13) (17).pdf}: inss_watcher::app::processor: 20: starting file processing
+2026-02-03T16:48:53.232664Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T16:48:53.351059Z DEBUG watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads"]}:process_file{[3mfile[0m[2m=[0m/home/skylark/Downloads/GuiaPagamentoReport (13) (17).pdf}: inss_watcher::app::processor: 59: document classified text_lenght=1644 doc_type=InssGuide
+2026-02-03T16:48:53.351317Z  INFO watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads"]}:process_file{[3mfile[0m[2m=[0m/home/skylark/Downloads/GuiaPagamentoReport (13) (17).pdf}:handle_inss_guide: inss_watcher::app::processor: 72: starting guide processing
+2026-02-03T16:48:53.431183Z  INFO watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads"]}:process_file{[3mfile[0m[2m=[0m/home/skylark/Downloads/GuiaPagamentoReport (13) (17).pdf}:handle_inss_guide: inss_watcher::app::processor: 85: guide already exists reference_num=118469657 contributor=915732100 period=1/2026
+2026-02-03T17:49:25.055395Z  INFO inss_watcher::infra::logging: 37: Logging system started
+2026-02-03T17:49:25.055499Z  INFO inss_watcher: 8: INSS Watcher daemon started version="0.1.0"
+2026-02-03T17:49:25.056554Z  INFO inss_watcher: 17: database initialized
+2026-02-03T17:49:25.058130Z  INFO watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}: inss_watcher::infra::watch: 14: starting filesystem watcher
+2026-02-03T17:49:25.060333Z  INFO watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}: inss_watcher::infra::watch: 23: watching directory path=/home/skylark/Downloads
+2026-02-03T17:49:25.079734Z  INFO watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}: inss_watcher::infra::watch: 23: watching directory path=/home/skylark/Documents
+2026-02-03T17:49:25.080350Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T17:49:25.080412Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T17:49:25.080441Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T17:49:25.080469Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T17:49:25.080496Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T17:49:25.080523Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T17:49:25.080550Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T17:49:25.080577Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T17:49:25.080604Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T17:49:25.080635Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T17:49:25.080668Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T17:49:25.080695Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T17:49:25.080722Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T17:49:25.080748Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T17:49:25.080811Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T17:49:25.080843Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T17:49:25.080871Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T17:49:25.080897Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T17:49:25.080924Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T17:49:25.080951Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T17:49:25.080978Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T17:49:25.081004Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T17:49:25.081031Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T17:49:25.081058Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T17:49:25.081084Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T17:49:25.081111Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T17:49:25.081138Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T17:49:25.081165Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T17:49:25.081192Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T17:49:25.081218Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T17:49:25.081248Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T17:49:25.081275Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T17:49:25.081301Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T17:49:25.081328Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T17:49:25.081355Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T17:49:25.081381Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T17:49:25.081408Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T17:49:25.081435Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T17:49:25.081462Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T17:49:25.081489Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T17:49:25.081516Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T17:49:25.081542Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T17:49:25.081569Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T17:49:25.081596Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T17:49:25.081623Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T17:49:25.081649Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T17:49:25.081676Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T17:49:25.081703Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T17:49:25.081729Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T17:49:25.081772Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T17:49:25.081801Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T17:49:42.787777Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T17:50:08.687499Z DEBUG inss_watcher::infra::watch: 46: candidate PDF detected file=/home/skylark/Documents/GuiaPagamentoReport (13) (13).pdf
+2026-02-03T17:50:08.687691Z DEBUG inss_watcher::infra::watch: 46: candidate PDF detected file=/home/skylark/Documents/GuiaPagamentoReport (13) (13).pdf
+2026-02-03T17:50:08.687941Z DEBUG watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}: inss_watcher::infra::watch: 91: checking file stability file=/home/skylark/Documents/GuiaPagamentoReport (13) (13).pdf attempt=0 size=113158
+2026-02-03T17:50:09.088449Z DEBUG watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}: inss_watcher::infra::watch: 91: checking file stability file=/home/skylark/Documents/GuiaPagamentoReport (13) (13).pdf attempt=1 size=113158
+2026-02-03T17:50:09.088665Z  INFO watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}: inss_watcher::infra::watch: 58: file stable, dispatching for processing file=/home/skylark/Documents/GuiaPagamentoReport (13) (13).pdf
+2026-02-03T17:50:09.089102Z  INFO watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}:process_file{[3mfile[0m[2m=[0m/home/skylark/Documents/GuiaPagamentoReport (13) (13).pdf}: inss_watcher::app::processor: 20: starting file processing
+2026-02-03T17:50:09.089506Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T17:50:09.208691Z DEBUG watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}:process_file{[3mfile[0m[2m=[0m/home/skylark/Documents/GuiaPagamentoReport (13) (13).pdf}: inss_watcher::app::processor: 59: document classified text_lenght=1644 doc_type=InssGuide
+2026-02-03T17:50:09.208959Z  INFO watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}:process_file{[3mfile[0m[2m=[0m/home/skylark/Documents/GuiaPagamentoReport (13) (13).pdf}:handle_inss_guide: inss_watcher::app::processor: 72: starting guide processing
+2026-02-03T17:50:09.291945Z  INFO watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}:process_file{[3mfile[0m[2m=[0m/home/skylark/Documents/GuiaPagamentoReport (13) (13).pdf}:handle_inss_guide: inss_watcher::app::processor: 85: guide already exists reference_num=116072385 contributor=915732100 period=11/2025
+2026-02-03T17:50:09.292236Z DEBUG watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}: inss_watcher::infra::watch: 91: checking file stability file=/home/skylark/Documents/GuiaPagamentoReport (13) (13).pdf attempt=0 size=113158
+2026-02-03T17:50:09.692935Z DEBUG watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}: inss_watcher::infra::watch: 91: checking file stability file=/home/skylark/Documents/GuiaPagamentoReport (13) (13).pdf attempt=1 size=113158
+2026-02-03T17:50:09.693124Z  INFO watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}: inss_watcher::infra::watch: 58: file stable, dispatching for processing file=/home/skylark/Documents/GuiaPagamentoReport (13) (13).pdf
+2026-02-03T17:50:09.693315Z  INFO watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}:process_file{[3mfile[0m[2m=[0m/home/skylark/Documents/GuiaPagamentoReport (13) (13).pdf}: inss_watcher::app::processor: 20: starting file processing
+2026-02-03T17:50:09.693793Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T17:50:09.806496Z DEBUG watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}:process_file{[3mfile[0m[2m=[0m/home/skylark/Documents/GuiaPagamentoReport (13) (13).pdf}: inss_watcher::app::processor: 59: document classified text_lenght=1644 doc_type=InssGuide
+2026-02-03T17:50:09.806687Z  INFO watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}:process_file{[3mfile[0m[2m=[0m/home/skylark/Documents/GuiaPagamentoReport (13) (13).pdf}:handle_inss_guide: inss_watcher::app::processor: 72: starting guide processing
+2026-02-03T17:50:09.887282Z  INFO watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}:process_file{[3mfile[0m[2m=[0m/home/skylark/Documents/GuiaPagamentoReport (13) (13).pdf}:handle_inss_guide: inss_watcher::app::processor: 85: guide already exists reference_num=116072385 contributor=915732100 period=11/2025
+2026-02-03T17:50:36.665680Z DEBUG inss_watcher::infra::watch: 46: candidate PDF detected file=/home/skylark/Downloads/GuiaPagamentoReport (13) (13).pdf
+2026-02-03T17:50:36.665852Z DEBUG inss_watcher::infra::watch: 46: candidate PDF detected file=/home/skylark/Downloads/GuiaPagamentoReport (13) (13).pdf
+2026-02-03T17:50:36.666052Z DEBUG watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}: inss_watcher::infra::watch: 91: checking file stability file=/home/skylark/Downloads/GuiaPagamentoReport (13) (13).pdf attempt=0 size=113158
+2026-02-03T17:50:37.066539Z DEBUG watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}: inss_watcher::infra::watch: 91: checking file stability file=/home/skylark/Downloads/GuiaPagamentoReport (13) (13).pdf attempt=1 size=113158
+2026-02-03T17:50:37.066697Z  INFO watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}: inss_watcher::infra::watch: 58: file stable, dispatching for processing file=/home/skylark/Downloads/GuiaPagamentoReport (13) (13).pdf
+2026-02-03T17:50:37.066920Z  INFO watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}:process_file{[3mfile[0m[2m=[0m/home/skylark/Downloads/GuiaPagamentoReport (13) (13).pdf}: inss_watcher::app::processor: 20: starting file processing
+2026-02-03T17:50:37.067278Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T17:50:37.180282Z DEBUG watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}:process_file{[3mfile[0m[2m=[0m/home/skylark/Downloads/GuiaPagamentoReport (13) (13).pdf}: inss_watcher::app::processor: 59: document classified text_lenght=1644 doc_type=InssGuide
+2026-02-03T17:50:37.180478Z  INFO watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}:process_file{[3mfile[0m[2m=[0m/home/skylark/Downloads/GuiaPagamentoReport (13) (13).pdf}:handle_inss_guide: inss_watcher::app::processor: 72: starting guide processing
+2026-02-03T17:50:37.263454Z  INFO watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}:process_file{[3mfile[0m[2m=[0m/home/skylark/Downloads/GuiaPagamentoReport (13) (13).pdf}:handle_inss_guide: inss_watcher::app::processor: 85: guide already exists reference_num=116072385 contributor=915732100 period=11/2025
+2026-02-03T17:50:37.263708Z DEBUG watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}: inss_watcher::infra::watch: 91: checking file stability file=/home/skylark/Downloads/GuiaPagamentoReport (13) (13).pdf attempt=0 size=113158
+2026-02-03T17:50:37.664486Z DEBUG watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}: inss_watcher::infra::watch: 91: checking file stability file=/home/skylark/Downloads/GuiaPagamentoReport (13) (13).pdf attempt=1 size=113158
+2026-02-03T17:50:37.664674Z  INFO watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}: inss_watcher::infra::watch: 58: file stable, dispatching for processing file=/home/skylark/Downloads/GuiaPagamentoReport (13) (13).pdf
+2026-02-03T17:50:37.664924Z  INFO watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}:process_file{[3mfile[0m[2m=[0m/home/skylark/Downloads/GuiaPagamentoReport (13) (13).pdf}: inss_watcher::app::processor: 20: starting file processing
+2026-02-03T17:50:37.665278Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T17:50:37.778957Z DEBUG watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}:process_file{[3mfile[0m[2m=[0m/home/skylark/Downloads/GuiaPagamentoReport (13) (13).pdf}: inss_watcher::app::processor: 59: document classified text_lenght=1644 doc_type=InssGuide
+2026-02-03T17:50:37.779157Z  INFO watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}:process_file{[3mfile[0m[2m=[0m/home/skylark/Downloads/GuiaPagamentoReport (13) (13).pdf}:handle_inss_guide: inss_watcher::app::processor: 72: starting guide processing
+2026-02-03T17:50:37.858499Z  INFO watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}:process_file{[3mfile[0m[2m=[0m/home/skylark/Downloads/GuiaPagamentoReport (13) (13).pdf}:handle_inss_guide: inss_watcher::app::processor: 85: guide already exists reference_num=116072385 contributor=915732100 period=11/2025
+2026-02-03T18:02:49.415053Z  INFO inss_watcher::infra::logging: 37: Logging system started
+2026-02-03T18:02:49.415143Z  INFO inss_watcher: 9: INSS Watcher daemon started version="0.1.0"
+2026-02-03T18:02:49.416998Z  INFO inss_watcher: 20: database initialized
+2026-02-03T18:02:49.417287Z  INFO watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}: inss_watcher::infra::watch: 14: starting filesystem watcher
+2026-02-03T18:02:49.419286Z  INFO watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}: inss_watcher::infra::watch: 23: watching directory path=/home/skylark/Downloads
+2026-02-03T18:02:49.424650Z  INFO watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}: inss_watcher::infra::watch: 23: watching directory path=/home/skylark/Documents
+2026-02-03T18:02:49.425192Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T18:02:49.425252Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T18:02:49.425282Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T18:02:49.425310Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T18:02:49.425337Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T18:02:49.425364Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T18:02:49.425390Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T18:02:49.425417Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T18:02:49.425444Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T18:02:49.425471Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T18:02:49.425499Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T18:02:49.425526Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T18:02:49.425554Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T18:02:49.425581Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T18:02:49.425607Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T18:02:49.425634Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T18:02:49.425661Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T18:02:49.425688Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T18:02:49.425715Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T18:02:49.425741Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T18:02:49.425786Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T18:02:49.425932Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T18:02:49.425995Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T18:02:49.426025Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T18:02:49.426053Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T18:02:49.426080Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T18:02:49.426106Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T18:02:49.426133Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T18:02:49.426159Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T18:02:49.426186Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T18:02:49.426215Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T18:02:49.426243Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T18:02:49.426270Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T18:02:49.426297Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T18:02:49.426325Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T18:02:49.426352Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T18:02:49.426379Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T18:02:49.426406Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T18:02:49.426432Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T18:02:49.426459Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T18:02:49.426485Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T18:02:49.426512Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T18:02:49.426539Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T18:02:49.426565Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T18:02:49.426592Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T18:02:49.426619Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T18:02:49.426646Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T18:02:49.426673Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T18:02:49.426699Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T18:02:49.426726Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T18:02:49.426786Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T18:02:59.844885Z DEBUG inss_watcher::infra::watch: 46: candidate PDF detected file=/home/skylark/Documents/GuiaPagamentoReport (13) (13).pdf
+2026-02-03T18:02:59.845073Z DEBUG inss_watcher::infra::watch: 46: candidate PDF detected file=/home/skylark/Documents/GuiaPagamentoReport (13) (13).pdf
+2026-02-03T18:02:59.845314Z DEBUG watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}: inss_watcher::infra::watch: 91: checking file stability file=/home/skylark/Documents/GuiaPagamentoReport (13) (13).pdf attempt=0 size=113158
+2026-02-03T18:03:00.246053Z DEBUG watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}: inss_watcher::infra::watch: 91: checking file stability file=/home/skylark/Documents/GuiaPagamentoReport (13) (13).pdf attempt=1 size=113158
+2026-02-03T18:03:00.246359Z  INFO watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}: inss_watcher::infra::watch: 58: file stable, dispatching for processing file=/home/skylark/Documents/GuiaPagamentoReport (13) (13).pdf
+2026-02-03T18:03:00.246594Z  INFO watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}:process_file{[3mfile[0m[2m=[0m/home/skylark/Documents/GuiaPagamentoReport (13) (13).pdf}: inss_watcher::app::processor: 20: starting file processing
+2026-02-03T18:03:00.247028Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T18:03:00.365465Z DEBUG watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}:process_file{[3mfile[0m[2m=[0m/home/skylark/Documents/GuiaPagamentoReport (13) (13).pdf}: inss_watcher::app::processor: 59: document classified text_lenght=1644 doc_type=InssGuide
+2026-02-03T18:03:00.365721Z  INFO watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}:process_file{[3mfile[0m[2m=[0m/home/skylark/Documents/GuiaPagamentoReport (13) (13).pdf}:handle_inss_guide: inss_watcher::app::processor: 72: starting guide processing
+2026-02-03T18:03:00.448837Z  INFO watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}:process_file{[3mfile[0m[2m=[0m/home/skylark/Documents/GuiaPagamentoReport (13) (13).pdf}:handle_inss_guide: inss_watcher::app::processor: 85: guide already exists reference_num=116072385 contributor=915732100 period=11/2025
+2026-02-03T18:03:00.449062Z DEBUG watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}: inss_watcher::infra::watch: 91: checking file stability file=/home/skylark/Documents/GuiaPagamentoReport (13) (13).pdf attempt=0 size=113158
+2026-02-03T18:03:00.849728Z DEBUG watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}: inss_watcher::infra::watch: 91: checking file stability file=/home/skylark/Documents/GuiaPagamentoReport (13) (13).pdf attempt=1 size=113158
+2026-02-03T18:03:00.849948Z  INFO watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}: inss_watcher::infra::watch: 58: file stable, dispatching for processing file=/home/skylark/Documents/GuiaPagamentoReport (13) (13).pdf
+2026-02-03T18:03:00.850190Z  INFO watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}:process_file{[3mfile[0m[2m=[0m/home/skylark/Documents/GuiaPagamentoReport (13) (13).pdf}: inss_watcher::app::processor: 20: starting file processing
+2026-02-03T18:03:00.850605Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T18:03:00.966832Z DEBUG watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}:process_file{[3mfile[0m[2m=[0m/home/skylark/Documents/GuiaPagamentoReport (13) (13).pdf}: inss_watcher::app::processor: 59: document classified text_lenght=1644 doc_type=InssGuide
+2026-02-03T18:03:00.967014Z  INFO watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}:process_file{[3mfile[0m[2m=[0m/home/skylark/Documents/GuiaPagamentoReport (13) (13).pdf}:handle_inss_guide: inss_watcher::app::processor: 72: starting guide processing
+2026-02-03T18:03:01.046196Z  INFO watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}:process_file{[3mfile[0m[2m=[0m/home/skylark/Documents/GuiaPagamentoReport (13) (13).pdf}:handle_inss_guide: inss_watcher::app::processor: 85: guide already exists reference_num=116072385 contributor=915732100 period=11/2025
+2026-02-03T18:03:02.708406Z DEBUG inss_watcher::infra::watch: 46: candidate PDF detected file=/home/skylark/Downloads/GuiaPagamentoReport (13) (13).pdf
+2026-02-03T18:03:02.708578Z DEBUG inss_watcher::infra::watch: 46: candidate PDF detected file=/home/skylark/Downloads/GuiaPagamentoReport (13) (13).pdf
+2026-02-03T18:03:02.708691Z DEBUG watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}: inss_watcher::infra::watch: 91: checking file stability file=/home/skylark/Downloads/GuiaPagamentoReport (13) (13).pdf attempt=0 size=113158
+2026-02-03T18:03:03.109441Z DEBUG watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}: inss_watcher::infra::watch: 91: checking file stability file=/home/skylark/Downloads/GuiaPagamentoReport (13) (13).pdf attempt=1 size=113158
+2026-02-03T18:03:03.109584Z  INFO watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}: inss_watcher::infra::watch: 58: file stable, dispatching for processing file=/home/skylark/Downloads/GuiaPagamentoReport (13) (13).pdf
+2026-02-03T18:03:03.109734Z  INFO watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}:process_file{[3mfile[0m[2m=[0m/home/skylark/Downloads/GuiaPagamentoReport (13) (13).pdf}: inss_watcher::app::processor: 20: starting file processing
+2026-02-03T18:03:03.110162Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T18:03:03.225005Z DEBUG watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}:process_file{[3mfile[0m[2m=[0m/home/skylark/Downloads/GuiaPagamentoReport (13) (13).pdf}: inss_watcher::app::processor: 59: document classified text_lenght=1644 doc_type=InssGuide
+2026-02-03T18:03:03.225186Z  INFO watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}:process_file{[3mfile[0m[2m=[0m/home/skylark/Downloads/GuiaPagamentoReport (13) (13).pdf}:handle_inss_guide: inss_watcher::app::processor: 72: starting guide processing
+2026-02-03T18:03:03.302059Z  INFO watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}:process_file{[3mfile[0m[2m=[0m/home/skylark/Downloads/GuiaPagamentoReport (13) (13).pdf}:handle_inss_guide: inss_watcher::app::processor: 85: guide already exists reference_num=116072385 contributor=915732100 period=11/2025
+2026-02-03T18:03:03.302331Z DEBUG watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}: inss_watcher::infra::watch: 91: checking file stability file=/home/skylark/Downloads/GuiaPagamentoReport (13) (13).pdf attempt=0 size=113158
+2026-02-03T18:03:03.702799Z DEBUG watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}: inss_watcher::infra::watch: 91: checking file stability file=/home/skylark/Downloads/GuiaPagamentoReport (13) (13).pdf attempt=1 size=113158
+2026-02-03T18:03:03.703059Z  INFO watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}: inss_watcher::infra::watch: 58: file stable, dispatching for processing file=/home/skylark/Downloads/GuiaPagamentoReport (13) (13).pdf
+2026-02-03T18:03:03.703347Z  INFO watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}:process_file{[3mfile[0m[2m=[0m/home/skylark/Downloads/GuiaPagamentoReport (13) (13).pdf}: inss_watcher::app::processor: 20: starting file processing
+2026-02-03T18:03:03.703774Z DEBUG inss_watcher::infra::watch: 37: event ignored kind=Access(Open(Any))
+2026-02-03T18:03:03.823547Z DEBUG watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}:process_file{[3mfile[0m[2m=[0m/home/skylark/Downloads/GuiaPagamentoReport (13) (13).pdf}: inss_watcher::app::processor: 59: document classified text_lenght=1644 doc_type=InssGuide
+2026-02-03T18:03:03.823810Z  INFO watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}:process_file{[3mfile[0m[2m=[0m/home/skylark/Downloads/GuiaPagamentoReport (13) (13).pdf}:handle_inss_guide: inss_watcher::app::processor: 72: starting guide processing
+2026-02-03T18:03:03.905545Z  INFO watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}:process_file{[3mfile[0m[2m=[0m/home/skylark/Downloads/GuiaPagamentoReport (13) (13).pdf}:handle_inss_guide: inss_watcher::app::processor: 85: guide already exists reference_num=116072385 contributor=915732100 period=11/2025
+2026-02-03T18:57:28.300997Z  INFO inss_watcher::infra::logging: 37: Logging system started
+2026-02-03T18:57:28.301086Z  INFO inss_watcher: 9: INSS Watcher daemon started version="0.1.0"
+2026-02-03T18:57:28.302930Z  INFO inss_watcher: 20: database initialized
+2026-02-03T18:57:28.303169Z  INFO watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}: inss_watcher::infra::watch: 16: starting filesystem watcher
+2026-02-03T18:57:28.305355Z  INFO watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}: inss_watcher::infra::watch: 25: watching directory path=/home/skylark/Downloads
+2026-02-03T18:57:28.310245Z  INFO watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}: inss_watcher::infra::watch: 25: watching directory path=/home/skylark/Documents
+2026-02-03T18:57:28.310822Z DEBUG inss_watcher::infra::watch: 39: event ignored kind=Access(Open(Any))
+2026-02-03T18:57:28.310937Z DEBUG inss_watcher::infra::watch: 39: event ignored kind=Access(Open(Any))
+2026-02-03T18:57:28.310990Z DEBUG inss_watcher::infra::watch: 39: event ignored kind=Access(Open(Any))
+2026-02-03T18:57:28.311049Z DEBUG inss_watcher::infra::watch: 39: event ignored kind=Access(Open(Any))
+2026-02-03T18:57:28.311111Z DEBUG inss_watcher::infra::watch: 39: event ignored kind=Access(Open(Any))
+2026-02-03T18:57:28.311152Z DEBUG inss_watcher::infra::watch: 39: event ignored kind=Access(Open(Any))
+2026-02-03T18:57:28.311210Z DEBUG inss_watcher::infra::watch: 39: event ignored kind=Access(Open(Any))
+2026-02-03T18:57:28.311255Z DEBUG inss_watcher::infra::watch: 39: event ignored kind=Access(Open(Any))
+2026-02-03T18:57:28.311287Z DEBUG inss_watcher::infra::watch: 39: event ignored kind=Access(Open(Any))
+2026-02-03T18:57:28.311325Z DEBUG inss_watcher::infra::watch: 39: event ignored kind=Access(Open(Any))
+2026-02-03T18:57:28.311356Z DEBUG inss_watcher::infra::watch: 39: event ignored kind=Access(Open(Any))
+2026-02-03T18:57:28.311405Z DEBUG inss_watcher::infra::watch: 39: event ignored kind=Access(Open(Any))
+2026-02-03T18:57:28.311484Z DEBUG inss_watcher::infra::watch: 39: event ignored kind=Access(Open(Any))
+2026-02-03T18:57:28.311535Z DEBUG inss_watcher::infra::watch: 39: event ignored kind=Access(Open(Any))
+2026-02-03T18:57:28.311587Z DEBUG inss_watcher::infra::watch: 39: event ignored kind=Access(Open(Any))
+2026-02-03T18:57:28.311637Z DEBUG inss_watcher::infra::watch: 39: event ignored kind=Access(Open(Any))
+2026-02-03T18:57:28.311684Z DEBUG inss_watcher::infra::watch: 39: event ignored kind=Access(Open(Any))
+2026-02-03T18:57:28.311727Z DEBUG inss_watcher::infra::watch: 39: event ignored kind=Access(Open(Any))
+2026-02-03T18:57:28.311769Z DEBUG inss_watcher::infra::watch: 39: event ignored kind=Access(Open(Any))
+2026-02-03T18:57:28.311813Z DEBUG inss_watcher::infra::watch: 39: event ignored kind=Access(Open(Any))
+2026-02-03T18:57:28.311856Z DEBUG inss_watcher::infra::watch: 39: event ignored kind=Access(Open(Any))
+2026-02-03T18:57:28.311899Z DEBUG inss_watcher::infra::watch: 39: event ignored kind=Access(Open(Any))
+2026-02-03T18:57:28.311941Z DEBUG inss_watcher::infra::watch: 39: event ignored kind=Access(Open(Any))
+2026-02-03T18:57:28.311983Z DEBUG inss_watcher::infra::watch: 39: event ignored kind=Access(Open(Any))
+2026-02-03T18:57:28.312025Z DEBUG inss_watcher::infra::watch: 39: event ignored kind=Access(Open(Any))
+2026-02-03T18:57:28.312066Z DEBUG inss_watcher::infra::watch: 39: event ignored kind=Access(Open(Any))
+2026-02-03T18:57:28.312109Z DEBUG inss_watcher::infra::watch: 39: event ignored kind=Access(Open(Any))
+2026-02-03T18:57:28.312151Z DEBUG inss_watcher::infra::watch: 39: event ignored kind=Access(Open(Any))
+2026-02-03T18:57:28.312208Z DEBUG inss_watcher::infra::watch: 39: event ignored kind=Access(Open(Any))
+2026-02-03T18:57:28.312256Z DEBUG inss_watcher::infra::watch: 39: event ignored kind=Access(Open(Any))
+2026-02-03T18:57:28.312307Z DEBUG inss_watcher::infra::watch: 39: event ignored kind=Access(Open(Any))
+2026-02-03T18:57:28.312350Z DEBUG inss_watcher::infra::watch: 39: event ignored kind=Access(Open(Any))
+2026-02-03T18:57:28.312391Z DEBUG inss_watcher::infra::watch: 39: event ignored kind=Access(Open(Any))
+2026-02-03T18:57:28.312434Z DEBUG inss_watcher::infra::watch: 39: event ignored kind=Access(Open(Any))
+2026-02-03T18:57:28.312475Z DEBUG inss_watcher::infra::watch: 39: event ignored kind=Access(Open(Any))
+2026-02-03T18:57:28.312517Z DEBUG inss_watcher::infra::watch: 39: event ignored kind=Access(Open(Any))
+2026-02-03T18:57:28.312559Z DEBUG inss_watcher::infra::watch: 39: event ignored kind=Access(Open(Any))
+2026-02-03T18:57:28.312601Z DEBUG inss_watcher::infra::watch: 39: event ignored kind=Access(Open(Any))
+2026-02-03T18:57:28.312643Z DEBUG inss_watcher::infra::watch: 39: event ignored kind=Access(Open(Any))
+2026-02-03T18:57:28.312684Z DEBUG inss_watcher::infra::watch: 39: event ignored kind=Access(Open(Any))
+2026-02-03T18:57:28.312727Z DEBUG inss_watcher::infra::watch: 39: event ignored kind=Access(Open(Any))
+2026-02-03T18:57:28.312769Z DEBUG inss_watcher::infra::watch: 39: event ignored kind=Access(Open(Any))
+2026-02-03T18:57:28.312811Z DEBUG inss_watcher::infra::watch: 39: event ignored kind=Access(Open(Any))
+2026-02-03T18:57:28.312852Z DEBUG inss_watcher::infra::watch: 39: event ignored kind=Access(Open(Any))
+2026-02-03T18:57:28.312894Z DEBUG inss_watcher::infra::watch: 39: event ignored kind=Access(Open(Any))
+2026-02-03T18:57:28.312936Z DEBUG inss_watcher::infra::watch: 39: event ignored kind=Access(Open(Any))
+2026-02-03T18:57:28.312978Z DEBUG inss_watcher::infra::watch: 39: event ignored kind=Access(Open(Any))
+2026-02-03T18:57:28.313020Z DEBUG inss_watcher::infra::watch: 39: event ignored kind=Access(Open(Any))
+2026-02-03T18:57:28.313062Z DEBUG inss_watcher::infra::watch: 39: event ignored kind=Access(Open(Any))
+2026-02-03T18:57:28.313103Z DEBUG inss_watcher::infra::watch: 39: event ignored kind=Access(Open(Any))
+2026-02-03T18:57:28.313145Z DEBUG inss_watcher::infra::watch: 39: event ignored kind=Access(Open(Any))
+2026-02-03T18:57:36.071008Z DEBUG inss_watcher::infra::watch: 48: candidate PDF detected file=/home/skylark/Documents/GuiaPagamentoReport (13) (13).pdf
+2026-02-03T18:57:36.071210Z DEBUG inss_watcher::infra::watch: 48: candidate PDF detected file=/home/skylark/Documents/GuiaPagamentoReport (13) (13).pdf
+2026-02-03T18:57:36.071413Z DEBUG watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}: inss_watcher::infra::watch: 93: checking file stability file=/home/skylark/Documents/GuiaPagamentoReport (13) (13).pdf attempt=0 size=113158
+2026-02-03T18:57:36.471953Z DEBUG watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}: inss_watcher::infra::watch: 93: checking file stability file=/home/skylark/Documents/GuiaPagamentoReport (13) (13).pdf attempt=1 size=113158
+2026-02-03T18:57:36.472144Z  INFO watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}: inss_watcher::infra::watch: 60: file stable, dispatching for processing file=/home/skylark/Documents/GuiaPagamentoReport (13) (13).pdf
+2026-02-03T18:57:36.472404Z  INFO watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}:process_file{[3mfile[0m[2m=[0m/home/skylark/Documents/GuiaPagamentoReport (13) (13).pdf}: inss_watcher::app::processor: 20: starting file processing
+2026-02-03T18:57:36.472872Z DEBUG inss_watcher::infra::watch: 39: event ignored kind=Access(Open(Any))
+2026-02-03T18:57:36.590554Z DEBUG watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}:process_file{[3mfile[0m[2m=[0m/home/skylark/Documents/GuiaPagamentoReport (13) (13).pdf}: inss_watcher::app::processor: 59: document classified text_lenght=1644 doc_type=InssGuide
+2026-02-03T18:57:36.590755Z  INFO watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}:process_file{[3mfile[0m[2m=[0m/home/skylark/Documents/GuiaPagamentoReport (13) (13).pdf}:handle_inss_guide: inss_watcher::app::processor: 72: starting guide processing
+2026-02-03T18:57:36.669729Z  INFO watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}:process_file{[3mfile[0m[2m=[0m/home/skylark/Documents/GuiaPagamentoReport (13) (13).pdf}:handle_inss_guide: inss_watcher::app::processor: 85: guide already exists reference_num=116072385 contributor=915732100 period=11/2025
+2026-02-03T18:57:36.669958Z DEBUG watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}: inss_watcher::infra::watch: 93: checking file stability file=/home/skylark/Documents/GuiaPagamentoReport (13) (13).pdf attempt=0 size=113158
+2026-02-03T18:57:37.070721Z DEBUG watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}: inss_watcher::infra::watch: 93: checking file stability file=/home/skylark/Documents/GuiaPagamentoReport (13) (13).pdf attempt=1 size=113158
+2026-02-03T18:57:37.070856Z  INFO watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}: inss_watcher::infra::watch: 60: file stable, dispatching for processing file=/home/skylark/Documents/GuiaPagamentoReport (13) (13).pdf
+2026-02-03T18:57:37.071003Z  INFO watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}:process_file{[3mfile[0m[2m=[0m/home/skylark/Documents/GuiaPagamentoReport (13) (13).pdf}: inss_watcher::app::processor: 20: starting file processing
+2026-02-03T18:57:37.071399Z DEBUG inss_watcher::infra::watch: 39: event ignored kind=Access(Open(Any))
+2026-02-03T18:57:37.183447Z DEBUG watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}:process_file{[3mfile[0m[2m=[0m/home/skylark/Documents/GuiaPagamentoReport (13) (13).pdf}: inss_watcher::app::processor: 59: document classified text_lenght=1644 doc_type=InssGuide
+2026-02-03T18:57:37.183624Z  INFO watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}:process_file{[3mfile[0m[2m=[0m/home/skylark/Documents/GuiaPagamentoReport (13) (13).pdf}:handle_inss_guide: inss_watcher::app::processor: 72: starting guide processing
+2026-02-03T18:57:37.259873Z  INFO watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}:process_file{[3mfile[0m[2m=[0m/home/skylark/Documents/GuiaPagamentoReport (13) (13).pdf}:handle_inss_guide: inss_watcher::app::processor: 85: guide already exists reference_num=116072385 contributor=915732100 period=11/2025
+2026-02-03T18:57:40.939006Z DEBUG inss_watcher::infra::watch: 48: candidate PDF detected file=/home/skylark/Downloads/GuiaPagamentoReport (13) (13).pdf
+2026-02-03T18:57:40.939124Z DEBUG inss_watcher::infra::watch: 48: candidate PDF detected file=/home/skylark/Downloads/GuiaPagamentoReport (13) (13).pdf
+2026-02-03T18:57:40.939378Z DEBUG watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}: inss_watcher::infra::watch: 93: checking file stability file=/home/skylark/Downloads/GuiaPagamentoReport (13) (13).pdf attempt=0 size=113158
+2026-02-03T18:57:41.339841Z DEBUG watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}: inss_watcher::infra::watch: 93: checking file stability file=/home/skylark/Downloads/GuiaPagamentoReport (13) (13).pdf attempt=1 size=113158
+2026-02-03T18:57:41.339975Z  INFO watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}: inss_watcher::infra::watch: 60: file stable, dispatching for processing file=/home/skylark/Downloads/GuiaPagamentoReport (13) (13).pdf
+2026-02-03T18:57:41.340098Z  INFO watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}:process_file{[3mfile[0m[2m=[0m/home/skylark/Downloads/GuiaPagamentoReport (13) (13).pdf}: inss_watcher::app::processor: 20: starting file processing
+2026-02-03T18:57:41.340435Z DEBUG inss_watcher::infra::watch: 39: event ignored kind=Access(Open(Any))
+2026-02-03T18:57:41.455165Z DEBUG watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}:process_file{[3mfile[0m[2m=[0m/home/skylark/Downloads/GuiaPagamentoReport (13) (13).pdf}: inss_watcher::app::processor: 59: document classified text_lenght=1644 doc_type=InssGuide
+2026-02-03T18:57:41.455374Z  INFO watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}:process_file{[3mfile[0m[2m=[0m/home/skylark/Downloads/GuiaPagamentoReport (13) (13).pdf}:handle_inss_guide: inss_watcher::app::processor: 72: starting guide processing
+2026-02-03T18:57:41.533765Z  INFO watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}:process_file{[3mfile[0m[2m=[0m/home/skylark/Downloads/GuiaPagamentoReport (13) (13).pdf}:handle_inss_guide: inss_watcher::app::processor: 85: guide already exists reference_num=116072385 contributor=915732100 period=11/2025
+2026-02-03T18:57:41.534034Z DEBUG watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}: inss_watcher::infra::watch: 93: checking file stability file=/home/skylark/Downloads/GuiaPagamentoReport (13) (13).pdf attempt=0 size=113158
+2026-02-03T18:57:41.934779Z DEBUG watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}: inss_watcher::infra::watch: 93: checking file stability file=/home/skylark/Downloads/GuiaPagamentoReport (13) (13).pdf attempt=1 size=113158
+2026-02-03T18:57:41.934920Z  INFO watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}: inss_watcher::infra::watch: 60: file stable, dispatching for processing file=/home/skylark/Downloads/GuiaPagamentoReport (13) (13).pdf
+2026-02-03T18:57:41.935131Z  INFO watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}:process_file{[3mfile[0m[2m=[0m/home/skylark/Downloads/GuiaPagamentoReport (13) (13).pdf}: inss_watcher::app::processor: 20: starting file processing
+2026-02-03T18:57:41.935605Z DEBUG inss_watcher::infra::watch: 39: event ignored kind=Access(Open(Any))
+2026-02-03T18:57:42.047447Z DEBUG watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}:process_file{[3mfile[0m[2m=[0m/home/skylark/Downloads/GuiaPagamentoReport (13) (13).pdf}: inss_watcher::app::processor: 59: document classified text_lenght=1644 doc_type=InssGuide
+2026-02-03T18:57:42.047640Z  INFO watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}:process_file{[3mfile[0m[2m=[0m/home/skylark/Downloads/GuiaPagamentoReport (13) (13).pdf}:handle_inss_guide: inss_watcher::app::processor: 72: starting guide processing
+2026-02-03T18:57:42.123604Z  INFO watcher{[3mwatch_path[0m[2m=[0m["/home/skylark/Downloads", "/home/skylark/Documents"]}:process_file{[3mfile[0m[2m=[0m/home/skylark/Downloads/GuiaPagamentoReport (13) (13).pdf}:handle_inss_guide: inss_watcher::app::processor: 85: guide already exists reference_num=116072385 contributor=915732100 period=11/2025
