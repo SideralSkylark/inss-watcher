@@ -1,42 +1,89 @@
 use notify::{EventKind, RecursiveMode, Watcher};
+use tracing::instrument;
+use tracing::{debug, info, warn};
+use std::sync::mpsc::Sender;
 use std::{path::PathBuf, sync::mpsc, thread, time::Duration};
 
-pub fn start(path: PathBuf, mut handler: impl FnMut(PathBuf)) -> anyhow::Result<()> {
-    let (tx_evt, rx_evt) = mpsc::channel();
-    let (tx_work, rx_work) = mpsc::channel::<PathBuf>();
+use crate::config::settings::ProcessingSettings;
+use crate::app::orchestrator::{Event, Message};
 
-    let mut watcher = notify::recommended_watcher(tx_evt)?;
-    watcher.watch(&path, RecursiveMode::Recursive)?;
+#[instrument(
+    name = "watcher",
+    skip_all,
+    fields(
+        watch_path = ?paths
+    )
+)]
+pub fn start(paths: Vec<PathBuf>, processing: &ProcessingSettings, sender: Sender<Message>) -> anyhow::Result<()> {
+    info!("starting filesystem watcher");
+
+    let (tx_evt, rx_evt) = mpsc::channel();
+
+    let stable_checks = processing.stable_checks;
+    let stable_delay_ms = processing.stable_delay_ms;
 
     thread::spawn(move || {
+        let mut watcher = match notify::recommended_watcher(tx_evt) {
+            Ok(w) => w,
+            Err(e) => {
+                warn!(error=%e, "failed to create watcher");
+                return;
+            }
+        };
+
+        for path in &paths {
+            if let Err(e) = watcher.watch(path, RecursiveMode::Recursive) {
+                warn!(error=%e, path=%path.display(), "failed to watch directory");
+                return;
+            }
+
+            info!(path = %path.display(), "watching directory");
+        }
+
         for res in rx_evt {
             let event = match res {
                 Ok(e) => e,
                 Err(e) => {
-                    log::warn!("event=watch_error error={}", e);
+                    warn!(error = %e, "watcher error");
                     continue;
                 }
             };
 
             if !matches!(event.kind, EventKind::Create(_) | EventKind::Modify(_)) {
+                debug!(
+                    kind = ?event.kind,
+                    "event ignored"
+                );
                 continue;
             }
 
             for path in event.paths {
                 if is_candidate_pdf(&path) {
-                    let _ = tx_work.send(path);
+                    debug!(
+                        file = %path.display(),
+                        "candidate PDF detected"
+                    );
+
+                    if wait_until_stable(&path, stable_checks, stable_delay_ms) {
+                        info!(
+                            file = %path.display(),
+                            "file stable, dispatching for processing"
+                        );
+                        if sender.send(Message::Event(Event { path })).is_err() {
+                            warn!("orchestrator channel closed, stopping watcher");
+                            break;
+                        }
+
+                    } else {
+                        warn!(
+                            file = %path.display(),
+                            "file did not stabilize"
+                        );
+                    }
                 }
             }
         }
     });
-
-    for path in rx_work {
-        if wait_until_stable(&path) {
-            handler(path);
-        } else {
-            log::warn!("event=file_unstable path={:?}", path);
-        }
-    }
 
     Ok(())
 }
@@ -50,22 +97,37 @@ fn is_candidate_pdf(path: &PathBuf) -> bool {
 }
 
 
-fn wait_until_stable(path: &PathBuf) -> bool {
+fn wait_until_stable(path: &PathBuf, stable_checks: usize, stable_delay_ms: u64) -> bool {
     let mut last_size = None;
 
-    for _ in 0..6 {
+    for attempt in 0..stable_checks {
         match std::fs::metadata(path) {
             Ok(meta) => {
                 let size = meta.len();
+
+                debug!(
+                    file = %path.display(),
+                    attempt,
+                    size,
+                    "checking file stability"
+                );
+
                 if Some(size) == last_size {
                     return true;
                 }
                 last_size = Some(size);
             }
-            Err(_) => return false,
+            Err(e) => {
+                warn!(
+                    file = %path.display(),
+                    error = %e,
+                    "failed to read file metadata"
+                );
+                return false;
+            }
         }
 
-        thread::sleep(Duration::from_millis(400));
+        thread::sleep(Duration::from_millis(stable_delay_ms));
     }
 
     false

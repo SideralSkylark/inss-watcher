@@ -66,7 +66,7 @@ pub fn move_pair(guide: &InssGuide, receipt: &PaymentReceipt) -> anyhow::Result<
         Ok(p) => p,
         Err(e) => {
             if let Err(rb) = fs::rename(&new_guide_path, &guide.path) {
-                log::error!("event=rollback_failed stage=restore_guide error={}", rb);
+                tracing::error!("event=rollback_failed stage=restore_guide error={}", rb);
             }
             return Err(e.context("failed to move pair"));
         }

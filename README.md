@@ -46,26 +46,29 @@
 - [] US06: Configure watched directories
 - [] US07: Pause/stop the daemon cleanly
 
+## Refactoring & Improvement TODOs
 
+### Concurrency & Performance
+- [ ] **Non-blocking Orchestrator**: Move `processor::process_file` to a worker thread or thread pool (e.g., using `rayon` or simple `thread::spawn`) to prevent the orchestrator's command loop from blocking during slow OCR operations.
+- [ ] **Asynchronous Stability Checks**: Move the `wait_until_stable` logic from the main watcher loop into the processing task so the watcher can continue detecting new files immediately.
+
+### Configuration & Flexibility
+- [ ] **Configurable Storage Paths**: Relocate hardcoded path logic from `infra/fs.rs` (like "INSS" and "quarentine" folders) into the `Settings` struct.
+- [ ] **Environment Variable Support**: Allow overriding configuration via environment variables (e.g., `INSS_WATCH_DIRS`).
+
+### Core Logic Improvements
+- [ ] **Robust Money Parsing**: Refactor `Money::from_str` in `domain/money.rs` to parse cents directly from strings, avoiding potential `f64` precision issues.
+- [ ] **Implement Rescan**: Complete the `orchestrator::rescan` function to scan and process all existing files in watched directories upon request or startup.
+- [ ] **Robust Startup Error Handling**: Correctly handle and log errors from `watch::start` in `orchestrator::start`, ensuring the daemon doesn't continue silently if the watcher fails.
+- [ ] **Improved Dependency Checks**: Add startup checks to ensure required external binaries (`pdftoppm`, `tesseract`) are available in the system PATH.
+
+### Monitoring & Control
+- [ ] **CLI Interface**: Implement a basic CLI (using `clap`) to send commands like `stop`, `rescan`, and `status` to the running daemon (e.g., via a local socket).
+- [ ] **Enhanced Observability**: Add a "dry-run" mode to see what files would be moved without actually moving them.
 
 ---
-use reference and amount to match, and date as a helper with the +10 days of next mont for help. for now the project should assume guides are payed in time
+1. configs(multiple dirs, policies and parameters)
+2. main.rs should run on threads with a controll loop
+3. cli manual operations for rescan statuses pause continue etc.
+4. review logging
 
-so in fs.rs the move function is agnostic enough so that i can use it for the new flow.
-processor (if guide)
-    |-store metadata in sql lite
-        |-check for matching receipts in db
-            |-if true (move guide and receipt to apropriate folder)
-            |-if not (quarentine guide)
-
-processor (if receipt)
-    |-store metadata
-        |-check for matching guides under quarentine
-            |-if true (move pair to apropriate dir)
-            |- if not (quarentine)
-
-n1. we allways store data in db for observability later.
-n2. when checking it's pertinent we store if its matched or not to avoid matching already matched guide
-
-Documents/INSS/{year}/...
-Documents/INSS/quarentine

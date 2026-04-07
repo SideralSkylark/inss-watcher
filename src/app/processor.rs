@@ -1,5 +1,5 @@
 use std::path::PathBuf;
-use log::{debug, info, warn, error};
+use tracing::{debug, error, info, instrument, warn};
 
 use crate::domain::classify::DocumentKind;
 use crate::domain::guide::{InssGuide, ParsedGuide};
@@ -9,67 +9,85 @@ use crate::infra::fs::MovedPairPaths;
 use crate::infra::persistence::StoreOutcome;
 use crate::infra::{fs, ocr, pdf, persistence};
 
+#[instrument(
+    name = "process_file",
+    skip(path),
+    fields(
+        file = %path.display()
+    )
+)]
 pub fn process_file(path: PathBuf) {
-    info!("event=file_processing_started path={:?}", path);
+    info!("starting file processing");
 
     let mut text = match pdf::extract_text(&path) {
         Ok(t) => t,
         Err(e) => {
-            error!("event=processing_failed stage=pdf_extract path={:?} error={}", path, e);
+            error!(stage = "pdf_extract", error = %e, "failed to extract text from PDF");
             return;
         }
     };
 
     if text.trim().is_empty() {
-        info!("event=ocr_fallback reason=empty_pdf_text path={:?}", path);
+        info!(reason = "empty_pdf", "attempting OCR fallback");
 
         let img_path = match pdf::pdf_to_img(&path) {
             Ok(p) => p,
             Err(e) => {
-                error!("event=processing_failed stage=pdf_render path={:?} error={}", path, e);
-            return;
+                error!(stage = "pdf_to_image", error = %e, "failed to render PDF to image");
+                return;
             }
         };
 
         match ocr::extract_text(&img_path) {
             Ok(ocr_text) => {
-                debug!("event=ocr_completed path={:?} text_len={}", img_path, ocr_text.len());
+                debug!(temp_file = %img_path.display(), chars = ocr_text.len(), "OCR extraction sucessfull");
                 text = ocr_text;
             },
             Err(e) => {
-                error!("event=processing_failed stage=ocr path={:?} error={}", img_path, e);
+                error!(stage = "OCR", temp_file = %img_path.display(), error = %e, "OCR extraction failed");
                 return;
             }
         };
 
-        let _ = std::fs::remove_file(&img_path);
+        if let Err(e) = std::fs::remove_file(&img_path) {
+            warn!(temp_file = %img_path.display(), error = %e, "failed to remove temporary file");
+        }
     }
 
     let kind = classify::classify_doc(&text);
-    debug!("event=document_classified path={:?} kind={:?} raw_len={}", path, kind, text.len());
+
+    debug!(text_lenght = text.len(), doc_type = ?kind, "document classified");
 
     match kind {
         DocumentKind::InssGuide => handle_inss_guide(path, &text),
         DocumentKind::PaymentReceipt => handle_payment_receipt(path, &text),
         DocumentKind::Other => {
-            info!("event=document_ignored reason=unsupported_type path={:?}", path);
+            info!(reason = "unsupported_type", "document ignored");
         }
     }
 }
 
+#[instrument(skip(path, text))]
 pub fn handle_inss_guide(path: PathBuf, text: &str) {
-    info!("event=inss_guide_processing_started path={:?}", path);
+    info!("starting guide processing");
 
     let parsed: ParsedGuide = match guide::parse_guide(&text) {
         Ok(p) => p,
         Err(e) => {
-            warn!("event=parsing_failed path={:?} error={}", path, e);
+            warn!(error = %e, "parsing failed");
             return;
         },
     };
 
+    let period = format!("{}/{}", parsed.reference_period.month, parsed.reference_period.year);
+
     if persistence::guide_exists(&parsed) {
-        info!("event=resource_already_exists path={:?}", path);
+        info!(
+            reference_num = %parsed.reference_num,
+            contributor = %parsed.contributor_num,
+            period = %period,
+            "guide already exists"
+        );
         return;
     }
 
@@ -78,34 +96,36 @@ pub fn handle_inss_guide(path: PathBuf, text: &str) {
     let outcome = match persistence::store_guide(&guide) {
         Ok(o) => o,
         Err(e) => {
-            error!("event=storing_failed kind=guide path={:?} error={}", guide.path, e);
+            error!(error = %e, "failure storing guide");
             return;
         },
     };
 
     if matches!(outcome, StoreOutcome::Inserted) {
-        info!("event=guide_stored path={:?}", guide.path);
+        info!(
+            reference_num = %guide.reference_num,
+            contributor = %guide.contributor_num,
+            period = %period,
+            "guide stored"
+        );
         try_match_guide(&guide);
     }
 }
 
+#[instrument(skip(path, text))]
 pub fn handle_payment_receipt(path: PathBuf, text: &str) {
-    info!(
-        "event=payment_receipt_detected path={:?} raw={}",
-        path,
-        text
-    );
+    info!("starting receipt processing");
 
     let parsed: ParsedReceipt = match receipt::parse_receipt(&text) {
         Ok(r) => r,
         Err(e) => {
-            warn!("event=parsing_failed path={:?} error={}", path, e);
+            warn!(error = %e, "parsing failed");
             return;
         },
     };
 
     if persistence::receipt_exists(&parsed) {
-        info!("event=resource_already_exists path={:?}", path);
+        info!("resource already exists");
         return;
     }
 
@@ -114,63 +134,87 @@ pub fn handle_payment_receipt(path: PathBuf, text: &str) {
     let outcome = match persistence::store_receipt(&receipt) {
         Ok(o) => o,
         Err(e) => {
-            error!("event=storing_failed kind=guide error={} path={:?}", e, receipt.path);
+            error!(error = %e, "failed storing receipt");
             return;
         },
     };
 
     if matches!(outcome, StoreOutcome::Inserted) {
-        info!("event=receipt_stored path={:?}", receipt.path);
+        info!(
+            reference_num = %receipt.reference_num,
+            "receipt stored"
+        );        
         try_match_receipt(&receipt);
     }
 }
 
+#[instrument(name = "try_match_guide", skip(guide))]
 fn try_match_guide(guide: &InssGuide) {
+    let period = format!("{}/{}", guide.reference_period.month, guide.reference_period.year);
+
     if let Some(receipt) = persistence::find_matching_receipt(guide) {
-        info!("event=matching_resource_found path={:?}", receipt.path);
+        info!(
+            reference_num = %guide.reference_num,
+            period = %period,
+            "matching receipt found"
+        );
 
         match fs::move_pair(&guide, &receipt) {
             Ok(moved) => {
                 persist_moved_pair(&guide, &receipt, moved);
             } 
             Err(e) => {
-                error!("event=fs_pair_move_failed error={}", e);
+                error!(error = %e, "failed to move pair");
             }
         }
     } else {
         debug!(
-            "event=no_matching_yet kind=guide ref={}",
-            guide.reference_num
+            reference_num = %guide.reference_num,
+            period = %period,
+            "no matching receipt found"
         );
     }
 }
 
+#[instrument(name = "try_match_receipt", skip(receipt))]
 fn try_match_receipt(receipt: &PaymentReceipt) {
     if let Some(guide) = persistence::find_matching_guide(receipt) {
 
-        info!("event=matching_resource_found path={:?}", guide.path);
+        info!(
+            reference_num = %receipt.reference_num,
+            "matching guide found"
+        );
         match fs::move_pair(&guide, &receipt) {
             Ok(moved) => {
                 persist_moved_pair(&guide, &receipt, moved);
             } 
             Err(e) => {
-                error!("event=fs_pair_move_failed error={}", e);
+                error!(error = %e, "failed to move pair");
             }
         }
     } else {
         debug!(
-            "event=no_matching_yet kind=receipt ref={}",
-            receipt.reference_num
+            reference_num = %receipt.reference_num,
+            "no matching guide found"
         );
     }
 }
 
+#[instrument(
+    skip_all,
+    fields(
+        guide_path = %guide.path.display(),
+        receipt_path = %receipt.path.display()
+    )
+)]
 fn persist_moved_pair(guide: &InssGuide, receipt: &PaymentReceipt, moved: MovedPairPaths) {
+    debug!("updating resources paths");
+
     if let Err(e) = persistence::transaction(|tx| {
         persistence::update_path_tx(tx, &guide.path, &moved.guide_path)?;
         persistence::update_path_tx(tx, &receipt.path, &moved.receipt_path)?;
         Ok(())
     }) {
-        error!("event=db_transaction_failed error={}", e);
+        error!(error = %e, "transaction failed");
     }
 }
