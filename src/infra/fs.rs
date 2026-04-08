@@ -79,28 +79,19 @@ pub fn move_pair(guide: &InssGuide, receipt: &PaymentReceipt) -> anyhow::Result<
 }
 
 /// Moves a single file to quarantine and returns the final path.
-pub fn quarentine(src: &Path) -> anyhow::Result<PathBuf> {
+pub fn quarantine(src: &Path, quarantine_dir: &Path) -> anyhow::Result<PathBuf> {
     if !src.exists() {
         return Ok(src.to_path_buf());
     }
 
-    let mut base = dirs::document_dir()
-        .or_else(dirs::home_dir)
-        .ok_or_else(|| anyhow::anyhow!("no home dir"))?;
-
-    base.push("INSS");
-    base.push("quarentine");
-
-    ensure_dir(&base)?;
+    ensure_dir(quarantine_dir)?;
 
     let file_name = src
         .file_name()
         .ok_or_else(|| anyhow::anyhow!("invalid source file"))?;
 
-    let dest = base.join(file_name);
-    let final_path = move_unique(src, &dest)?;
-
-    Ok(final_path)
+    let dest = quarantine_dir.join(file_name);
+    move_unique(src, &dest)
 }
 
 /// computes the output directory for a resouce given its metadata

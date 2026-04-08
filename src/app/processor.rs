@@ -1,11 +1,12 @@
 use std::path::PathBuf;
 use tracing::{debug, error, info, instrument, warn};
 
+use crate::config::{Settings};
 use crate::domain::classify::DocumentKind;
 use crate::domain::guide::{InssGuide, ParsedGuide};
 use crate::domain::receipt::{self, ParsedReceipt, PaymentReceipt};
 use crate::domain::{classify, guide};
-use crate::infra::fs::MovedPairPaths;
+use crate::infra::fs::{MovedPairPaths, quarantine};
 use crate::infra::persistence::StoreOutcome;
 use crate::infra::{fs, ocr, pdf, persistence};
 
@@ -62,7 +63,11 @@ pub fn process_file(path: PathBuf) {
         DocumentKind::InssGuide => handle_inss_guide(path, &text),
         DocumentKind::PaymentReceipt => handle_payment_receipt(path, &text),
         DocumentKind::Other => {
-            info!(reason = "unsupported_type", "document ignored");
+            info!(
+                file = %path.display(),
+                reason = "insuported_type",
+                "document ignored"
+        );
         }
     }
 }
@@ -173,6 +178,19 @@ fn try_match_guide(guide: &InssGuide) {
             period = %period,
             "no matching receipt found"
         );
+
+        let settings = match Settings::load() {
+            Ok(o) => o,
+            Err(e) => {
+                error!(error = %e, "failed to load settings");
+                return;
+            }
+        };
+
+        if let Err(e) = quarantine(&guide.path, &settings.quarantine.quarantine_path) {
+            error!(error = %e, "failed to quarantine a file");
+        }
+
     }
 }
 
@@ -197,6 +215,17 @@ fn try_match_receipt(receipt: &PaymentReceipt) {
             reference_num = %receipt.reference_num,
             "no matching guide found"
         );
+
+        let settings = match Settings::load() {
+            Ok(o) => o,
+            Err(e) => {
+                error!(error = %e, "failed to load settings");
+                return;
+            }
+        };
+        if let Err(e) = quarantine(&receipt.path, &settings.quarantine.quarantine_path) {
+            error!( error = %e, "failed to quarantine a file")
+        }
     }
 }
 
