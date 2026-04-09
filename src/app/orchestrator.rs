@@ -1,8 +1,8 @@
-use std::{path::PathBuf, sync::mpsc::{self, Receiver}};
+use std::{thread::spawn, path::PathBuf, sync::mpsc::{self, Receiver}};
 use anyhow::Context;
 use tracing::{debug, info};
 
-use crate::{app::processor, config::Settings, infra::{persistence, watch}};
+use crate::{app::processor, config::{Settings}, infra::{persistence, watch}};
 
 pub struct Daemon {
     state: State,
@@ -36,14 +36,17 @@ impl Daemon {
         Ok(())
     }
 
-    /// sends a file for processing, this is syncronous(blocks)
+    /// dispatches file processing asynchronously (non-blocking) 
     fn handle_event(&mut self, event: Event) -> anyhow::Result<()> {
         if !matches!(self.state, State::Running) {
             debug!("daemon unavalible ignoring");
             return Ok(());
         }
 
-        processor::process_file(event.path, &self.settings);
+        let settings = self.settings.clone();
+        spawn(move || {
+            processor::process_file(event.path, &settings);
+        });
         Ok(())
     }
 
@@ -91,11 +94,11 @@ pub fn start() -> anyhow::Result<()> {
     
     let mut daemon = Daemon { state: State::Starting, settings: settings };
 
-    let _ = watch::start(
+    watch::start(
         daemon.settings.watcher.dirs_to_watch.clone(),
         &daemon.settings.processing,
         tx.clone()
-    );
+    )?;
 
     daemon.run(rx)
 }

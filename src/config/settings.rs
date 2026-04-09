@@ -2,7 +2,7 @@ use std::{fs, path::PathBuf};
 
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(default)]
 pub struct Settings {
     pub watcher: WatcherSettings,
@@ -11,26 +11,26 @@ pub struct Settings {
     pub quarantine: QuarantineSettings,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(default)]
 pub struct WatcherSettings {
     pub dirs_to_watch: Vec<PathBuf>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(default)]
 pub struct DatabaseSettings {
     pub path: PathBuf,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(default)]
 pub struct ProcessingSettings {
     pub stable_checks: usize,
     pub stable_delay_ms: u64,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(default)]
 pub struct QuarantineSettings {
     pub quarantine_path: PathBuf,
