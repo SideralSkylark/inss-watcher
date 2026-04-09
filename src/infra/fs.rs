@@ -2,6 +2,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::Context;
+use tracing::{info, error};
 
 use crate::domain::guide::InssGuide;
 use crate::domain::receipt::PaymentReceipt;
@@ -66,7 +67,7 @@ pub fn move_pair(guide: &InssGuide, receipt: &PaymentReceipt) -> anyhow::Result<
         Ok(p) => p,
         Err(e) => {
             if let Err(rb) = fs::rename(&new_guide_path, &guide.path) {
-                tracing::error!("event=rollback_failed stage=restore_guide error={}", rb);
+                error!("event=rollback_failed stage=restore_guide error={}", rb);
             }
             return Err(e.context("failed to move pair"));
         }
@@ -91,6 +92,7 @@ pub fn quarantine(src: &Path, quarantine_dir: &Path) -> anyhow::Result<PathBuf> 
         .ok_or_else(|| anyhow::anyhow!("invalid source file"))?;
 
     let dest = quarantine_dir.join(file_name);
+    info!("quarantining resource");
     move_unique(src, &dest)
 }
 

@@ -187,10 +187,18 @@ fn try_match_guide(guide: &InssGuide) {
             }
         };
 
-        if let Err(e) = quarantine(&guide.path, &settings.quarantine.quarantine_path) {
-            error!(error = %e, "failed to quarantine a file");
-        }
+        let new_path = match quarantine(&guide.path, &settings.quarantine.quarantine_path) {
+            Ok(p) => p,
+            Err(e) => {
+                error!(error = %e, "failed to quarantine guide");
+                return;
+            }
+        };
 
+        if let Err(e) = persistence::update_path(&guide.path, &new_path) {
+            error!(error = %e, "failed to update file's path");
+            return;
+        };
     }
 }
 
@@ -223,8 +231,18 @@ fn try_match_receipt(receipt: &PaymentReceipt) {
                 return;
             }
         };
-        if let Err(e) = quarantine(&receipt.path, &settings.quarantine.quarantine_path) {
-            error!( error = %e, "failed to quarantine a file")
+
+        let new_path = match quarantine(&receipt.path, &settings.quarantine.quarantine_path) {
+            Ok(p) => p,
+            Err(e) => {
+                error!(error = %e, "failed to quarantine receipt");
+                return;
+            }
+        };
+
+        if let Err(e) = persistence::update_path(&receipt.path, &new_path) {
+            error!( error = %e, "failed to updated receipt's path");
+            return;
         }
     }
 }

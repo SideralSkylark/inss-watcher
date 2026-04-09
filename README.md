@@ -67,6 +67,8 @@
 - [ ] **Enhanced Observability**: Add a "dry-run" mode to see what files would be moved without actually moving them.
 
 ---
+Errors:
+
 TODOS:
 1. configs(multiple dirs, policies and parameters)
 2. main.rs should run on threads with a controll loop
