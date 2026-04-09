@@ -64,22 +64,25 @@ pub fn start(paths: Vec<PathBuf>, processing: &ProcessingSettings, sender: Sende
                         "candidate PDF detected"
                     );
 
-                    if wait_until_stable(&path, stable_checks, stable_delay_ms) {
-                        info!(
-                            file = %path.display(),
-                            "file stable, dispatching for processing"
-                        );
-                        if sender.send(Message::Event(Event { path })).is_err() {
-                            warn!("orchestrator channel closed, stopping watcher");
-                            break;
-                        }
+                    let sender = sender.clone();
 
-                    } else {
-                        warn!(
-                            file = %path.display(),
-                            "file did not stabilize"
-                        );
-                    }
+                    thread::spawn(move || {
+                        if wait_until_stable(&path, stable_checks, stable_delay_ms) {
+                            info!(
+                                file = %path.display(),
+                                "file stable, dispatching for processing"
+                            );
+                            if sender.send(Message::Event(Event { path })).is_err() {
+                                warn!("orchestrator channel closed, dropping event");
+                            }
+
+                        } else {
+                            warn!(
+                                file = %path.display(),
+                                "file did not stabilize"
+                            );
+                        }
+                    });
                 }
             }
         }
