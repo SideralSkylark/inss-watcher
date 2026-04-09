@@ -43,8 +43,7 @@ impl Daemon {
             return Ok(());
         }
 
-        processor::process_file(event.path);
-
+        processor::process_file(event.path, &self.settings);
         Ok(())
     }
 

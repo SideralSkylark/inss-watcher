@@ -13,20 +13,19 @@
 - [x] RF06: Generate destination path based on date + contributor 
 - [x] RF07: Move files to appropriate directory
 - [x] RF08: Handle naming conflicts (rename if file exists) 
-- [] RF09: Maintain symbolic link or record in original location (optional)
 
 ### Matching System
-- [x] RF10: Store metadata of processed guides
-- [x] RF11: Match incoming payments with existing guides
-- [x] RF12: Move matched pairs to final organized location
-- [] RF13: Retain unmatched guides for future matching (configurable period)
-- [] RF14: Clean up old unmatched records
+- [x] RF9: Store metadata of processed guides
+- [x] RF10: Match incoming payments with existing guides
+- [x] RF11: Move matched pairs to final organized location
+- [] RF12: Retain unmatched guides for future matching (configurable period)
+- [] RF13: Clean up old unmatched records
 
 ### Monitoring & Control
-- [] RF15: Log all actions (file processed, moved, matched)
-- [] RF16: Provide CLI for manual operations
-- [] RF17: Export list of unmatched documents
-- [] RF18: Configuration via file or CLI arguments
+- [] RF14: Log all actions (file processed, moved, matched)
+- [] RF15: Provide CLI for manual operations
+- [] RF16: Export list of unmatched documents
+- [] RF17: Configuration via file or CLI arguments
 
 ## Non-Functional Requirements
 - NF01: **Reliability**: Must not lose or corrupt files during processing
