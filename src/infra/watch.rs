@@ -73,7 +73,6 @@ pub fn start(paths: Vec<PathBuf>, processing: &ProcessingSettings, sender: Sende
                                 "file stable, dispatching for processing"
                             );
                             if sender.send(Message::Event(Event { path })).is_err() {
-<<<<<<< HEAD
                                 warn!("orchestrator channel closed, dropping event");
                             }
                         } else {
