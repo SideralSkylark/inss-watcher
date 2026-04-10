@@ -1,4 +1,4 @@
-use std::{path::PathBuf, sync::mpsc::{self, Receiver}};
+use std::{path::PathBuf, sync::{mpsc::{self, Receiver}}, thread};
 use anyhow::Context;
 use tracing::{debug, info};
 
@@ -36,14 +36,20 @@ impl Daemon {
         Ok(())
     }
 
-    /// sends a file for processing, this is syncronous(blocks)
+    /// sends a file for processing, dosen't block (async)
     fn handle_event(&mut self, event: Event) -> anyhow::Result<()> {
         if !matches!(self.state, State::Running) {
             debug!("daemon unavalible ignoring");
             return Ok(());
         }
 
-        processor::process_file(event.path, &self.settings);
+        let path = event.path.clone();
+        let settings = self.settings.clone();
+
+        thread::spawn(move || {
+            processor::process_file(path, &settings);
+        });
+
         Ok(())
     }
 
