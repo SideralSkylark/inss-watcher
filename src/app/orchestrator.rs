@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 use std::{thread::spawn, path::PathBuf, sync::mpsc::{self, Receiver}};
 use anyhow::Context;
 use tracing::{debug, info};
@@ -36,6 +37,7 @@ impl Daemon {
         Ok(())
     }
 
+<<<<<<< HEAD
     /// dispatches file processing asynchronously (non-blocking) 
     fn handle_event(&mut self, event: Event) -> anyhow::Result<()> {
         if !matches!(self.state, State::Running) {
@@ -43,6 +45,7 @@ impl Daemon {
             return Ok(());
         }
 
+<<<<<<< HEAD
         let settings = self.settings.clone();
         spawn(move || {
             processor::process_file(event.path, &settings);
