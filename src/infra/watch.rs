@@ -73,9 +73,9 @@ pub fn start(paths: Vec<PathBuf>, processing: &ProcessingSettings, sender: Sende
                                 "file stable, dispatching for processing"
                             );
                             if sender.send(Message::Event(Event { path })).is_err() {
+<<<<<<< HEAD
                                 warn!("orchestrator channel closed, dropping event");
                             }
-
                         } else {
                             warn!(
                                 file = %path.display(),
@@ -93,10 +93,10 @@ pub fn start(paths: Vec<PathBuf>, processing: &ProcessingSettings, sender: Sende
 
 fn is_candidate_pdf(path: &PathBuf) -> bool {
     path.is_file()
-        && path
-            .extension()
-            .map(|e| e.eq_ignore_ascii_case("pdf"))
-            .unwrap_or(false)
+    && path
+        .extension()
+        .map(|e| e.eq_ignore_ascii_case("pdf"))
+        .unwrap_or(false)
 }
 
 
