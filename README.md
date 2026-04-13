@@ -45,32 +45,31 @@
 - [] US06: Configure watched directories
 - [] US07: Pause/stop the daemon cleanly
 
-## Refactoring & Improvement TODOs
+## Next Steps & Improvements
 
-### Concurrency & Performance
-- [ ] **Non-blocking Orchestrator**: Move `processor::process_file` to a worker thread or thread pool (e.g., using `rayon` or simple `thread::spawn`) to prevent the orchestrator's command loop from blocking during slow OCR operations.
-- [ ] **Asynchronous Stability Checks**: Move the `wait_until_stable` logic from the main watcher loop into the processing task so the watcher can continue detecting new files immediately.
+### Architecture & Concurrency
+- [ ] **Transition to Async (Tokio)**: Migrate the synchronous `mpsc` and `std::thread` implementation to `tokio`. This includes using `tokio::fs`, `tokio::sync::mpsc`, and `tokio::spawn` for better resource management.
+- [ ] **Robust Orchestrator Loop**: Implement a proper control loop for the daemon that handles signals (SIGINT, SIGTERM) gracefully and allows for runtime commands (pause, resume, reload).
+- [ ] **Database Migrations**: Replace the manual `schema.sql` initialization with a robust migration tool like `rusqlite_migration` or `refinery`.
 
-### Configuration & Flexibility
-- [ ] **Configurable Storage Paths**: Relocate hardcoded path logic from `infra/fs.rs` (like "INSS" and "quarentine" folders) into the `Settings` struct.
-- [ ] **Environment Variable Support**: Allow overriding configuration via environment variables (e.g., `INSS_WATCH_DIRS`).
+### Core Logic & Robustness
+- [ ] **Advanced Error Handling**: Move away from using `anyhow` everywhere. Implement custom error types using `thiserror` for better error categorization (e.g., `ParsingError`, `StorageError`).
+- [ ] **Precision Money Handling**: Refactor `Money` parsing to avoid `f64` and use cents (integers) or a dedicated decimal crate to prevent precision issues.
+- [ ] **Improved PDF & OCR**: 
+    - Add startup checks for external dependencies (`pdftoppm`, `tesseract`).
+    - Explore native Rust crates for OCR or more robust PDF text extraction.
+- [ ] **Configurable Policies**: Move hardcoded paths and business rules (quarantine logic, retention periods) into the configuration system.
 
-### Core Logic Improvements
-- [ ] **Robust Money Parsing**: Refactor `Money::from_str` in `domain/money.rs` to parse cents directly from strings, avoiding potential `f64` precision issues.
-- [ ] **Implement Rescan**: Complete the `orchestrator::rescan` function to scan and process all existing files in watched directories upon request or startup.
-- [ ] **Robust Startup Error Handling**: Correctly handle and log errors from `watch::start` in `orchestrator::start`, ensuring the daemon doesn't continue silently if the watcher fails.
-- [ ] **Improved Dependency Checks**: Add startup checks to ensure required external binaries (`pdftoppm`, `tesseract`) are available in the system PATH.
+### CLI & User Experience
+- [ ] **Comprehensive CLI**: Build a multi-command CLI using `clap` (e.g., `inss-watcher start`, `inss-watcher status`, `inss-watcher rescan`).
+- [ ] **Dry-Run Mode**: Implement a flag to simulate file movements and matching without making actual changes to the filesystem or database.
+- [ ] **Enhanced Configuration**: Use the `config` crate to support merging settings from `config.toml`, environment variables, and CLI arguments.
 
-### Monitoring & Control
-- [ ] **CLI Interface**: Implement a basic CLI (using `clap`) to send commands like `stop`, `rescan`, and `status` to the running daemon (e.g., via a local socket).
-- [ ] **Enhanced Observability**: Add a "dry-run" mode to see what files would be moved without actually moving them.
-
----
-Errors:
-
-TODOS:
-1. configs(multiple dirs, policies and parameters)
-2. main.rs should run on threads with a controll loop
-3. cli manual operations for rescan statuses pause continue etc.
-4. review logging
+### Quality & Observability
+- [ ] **Testing Strategy**:
+    - **Unit Tests**: Add tests for domain logic (parsing, matching) with various mock inputs.
+    - **Integration Tests**: Use temporary directories and in-memory databases to test the full pipeline.
+- [ ] **Structured Logging**: Refine `tracing` usage to include more contextual metadata in logs and support different output formats (JSON for production, pretty for development).
+- [ ] **CI/CD Pipeline**: Set up GitHub Actions for automated linting (`clippy`), formatting (`fmt`), and test execution.
+- [ ] **Documentation**: Improve code documentation with `rustdoc` comments and generate a project site.
 
