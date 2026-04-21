@@ -15,7 +15,7 @@ use crate::app::orchestrator::{Event, Message};
     )
 )]
 pub fn start(paths: Vec<PathBuf>, processing: &ProcessingSettings, sender: Sender<Message>) -> anyhow::Result<()> {
-    info!("starting filesystem watcher");
+    debug!("starting filesystem watcher");
 
     let (tx_evt, rx_evt) = mpsc::channel();
 
@@ -68,7 +68,7 @@ pub fn start(paths: Vec<PathBuf>, processing: &ProcessingSettings, sender: Sende
 
                     thread::spawn(move || {
                         if wait_until_stable(&path, stable_checks, stable_delay_ms) {
-                            info!(
+                            debug!(
                                 file = %path.display(),
                                 "file stable, dispatching for processing"
                             );

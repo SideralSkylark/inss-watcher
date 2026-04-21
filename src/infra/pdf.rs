@@ -2,6 +2,8 @@ use std::{
     path::{Path, PathBuf},
     process::Command,
 };
+use tracing::debug;
+use anyhow::{anyhow, bail};
 
 pub fn extract_text(path: &Path) -> anyhow::Result<String> {
     pdf_extract::extract_text(path).map_err(Into::into)
@@ -10,7 +12,7 @@ pub fn extract_text(path: &Path) -> anyhow::Result<String> {
 pub fn pdf_to_img(path: &Path) -> anyhow::Result<PathBuf> {
     let stem = path
         .file_stem()
-        .ok_or_else(|| anyhow::anyhow!("PDF has no file stem: {:?}", path))?
+        .ok_or_else(|| anyhow!("PDF has no file stem: {:?}", path))?
         .to_string_lossy();
 
     let out_dir = std::env::temp_dir().join("inss_watcher");
@@ -29,14 +31,14 @@ pub fn pdf_to_img(path: &Path) -> anyhow::Result<PathBuf> {
         .status()?;
 
     if !status.success() {
-        anyhow::bail!("pdftoppm failed for {:?}", path);
+        bail!("pdftoppm failed for {:?}", path);
     }
 
     if !output.exists() {
-        anyhow::bail!("pdftoppm did not generate image for {:?}", path);
+        bail!("pdftoppm did not generate image for {:?}", path);
     }
 
-    tracing::info!(
+    debug!(
         "event=pdf_rendered page=1 image={:?}",
         output
     );

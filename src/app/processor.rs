@@ -12,13 +12,13 @@ use crate::infra::{fs, ocr, pdf, persistence};
 
 #[instrument(
     name = "process_file",
-    skip(path),
+    skip(path, settings),
     fields(
         file = %path.display()
     )
 )]
 pub fn process_file(path: PathBuf, settings: &Settings) {
-    info!("starting file processing");
+    debug!("starting file processing");
 
     let mut text = match pdf::extract_text(&path) {
         Ok(t) => t,
@@ -29,7 +29,7 @@ pub fn process_file(path: PathBuf, settings: &Settings) {
     };
 
     if text.trim().is_empty() {
-        info!(reason = "empty_pdf", "attempting OCR fallback");
+        debug!(reason = "empty_pdf", "attempting OCR fallback");
 
         let img_path = match pdf::pdf_to_img(&path) {
             Ok(p) => p,
@@ -72,9 +72,9 @@ pub fn process_file(path: PathBuf, settings: &Settings) {
     }
 }
 
-#[instrument(skip(path, text))]
+#[instrument(skip(path, text, settings))]
 pub fn handle_inss_guide(path: PathBuf, text: &str, settings: &Settings) {
-    info!("starting guide processing");
+    debug!("starting guide processing");
 
     let parsed: ParsedGuide = match guide::parse_guide(&text) {
         Ok(p) => p,
@@ -87,7 +87,7 @@ pub fn handle_inss_guide(path: PathBuf, text: &str, settings: &Settings) {
     let period = format!("{}/{}", parsed.reference_period.month, parsed.reference_period.year);
 
     if persistence::guide_exists(&parsed) {
-        info!(
+        debug!(
             reference_num = %parsed.reference_num,
             contributor = %parsed.contributor_num,
             period = %period,
@@ -117,9 +117,9 @@ pub fn handle_inss_guide(path: PathBuf, text: &str, settings: &Settings) {
     }
 }
 
-#[instrument(skip(path, text))]
+#[instrument(skip(path, text, settings))]
 pub fn handle_payment_receipt(path: PathBuf, text: &str, settings: &Settings) {
-    info!("starting receipt processing");
+    debug!("starting receipt processing");
 
     let parsed: ParsedReceipt = match receipt::parse_receipt(&text) {
         Ok(r) => r,
@@ -130,7 +130,7 @@ pub fn handle_payment_receipt(path: PathBuf, text: &str, settings: &Settings) {
     };
 
     if persistence::receipt_exists(&parsed) {
-        info!("resource already exists");
+        debug!("resource already exists");
         return;
     }
 
@@ -153,7 +153,7 @@ pub fn handle_payment_receipt(path: PathBuf, text: &str, settings: &Settings) {
     }
 }
 
-#[instrument(name = "try_match_guide", skip(guide))]
+#[instrument(name = "try_match_guide", skip(guide, settings))]
 fn try_match_guide(guide: &InssGuide, settings: &Settings) {
     let period = format!("{}/{}", guide.reference_period.month, guide.reference_period.year);
 
@@ -194,7 +194,7 @@ fn try_match_guide(guide: &InssGuide, settings: &Settings) {
     }
 }
 
-#[instrument(name = "try_match_receipt", skip(receipt))]
+#[instrument(name = "try_match_receipt", skip(receipt, settings))]
 fn try_match_receipt(receipt: &PaymentReceipt, settings: &Settings) {
     if let Some(guide) = persistence::find_matching_guide(receipt) {
 
@@ -215,14 +215,6 @@ fn try_match_receipt(receipt: &PaymentReceipt, settings: &Settings) {
             reference_num = %receipt.reference_num,
             "no matching guide found"
         );
-
-        let settings = match Settings::load() {
-            Ok(o) => o,
-            Err(e) => {
-                error!(error = %e, "failed to load settings");
-                return;
-            }
-        };
 
         let new_path = match quarantine(&receipt.path, &settings.quarantine.quarantine_path) {
             Ok(p) => p,

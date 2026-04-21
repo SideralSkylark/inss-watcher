@@ -1,4 +1,5 @@
 use std::{path::Path, process::Command};
+use anyhow::bail;
 
 pub fn extract_text(path: &Path) -> anyhow::Result<String> {
 
@@ -10,7 +11,7 @@ pub fn extract_text(path: &Path) -> anyhow::Result<String> {
         .output()?;
 
     if !output.status.success() {
-        anyhow::bail!("event=tesseract_failed path={:?}", path);
+        bail!("event=tesseract_failed path={:?}", path);
     }
 
     let text = String::from_utf8(output.stdout)?;

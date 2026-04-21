@@ -1,6 +1,6 @@
 use std::{thread::spawn, path::PathBuf, sync::mpsc::{self, Receiver}};
 use anyhow::Context;
-use tracing::{debug, info};
+use tracing::debug;
 
 use crate::{app::processor, config::{Settings}, infra::{persistence, watch}};
 
@@ -90,7 +90,7 @@ pub fn start() -> anyhow::Result<()> {
 
     persistence::init(&db_path)
         .context("database initialization failed")?;
-    info!("database initialized");
+    debug!("database initialized");
     
     let mut daemon = Daemon { state: State::Starting, settings: settings };
 
