@@ -28,6 +28,7 @@ pub struct DatabaseSettings {
 pub struct ProcessingSettings {
     pub stable_checks: usize,
     pub stable_delay_ms: u64,
+    pub worker_threads: u32,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -99,6 +100,7 @@ impl Default for ProcessingSettings {
         Self { 
             stable_checks: 6, 
             stable_delay_ms: 400,
+            worker_threads: 4,
         }
     }
 }
