@@ -1,6 +1,7 @@
 use notify::{EventKind, RecursiveMode, Watcher};
 use tracing::instrument;
 use tracing::{debug, info, warn};
+use std::path::Path;
 use std::sync::mpsc::Sender;
 use std::{path::PathBuf, sync::mpsc, thread, time::Duration};
 
@@ -63,25 +64,20 @@ pub fn start(paths: Vec<PathBuf>, processing: &ProcessingSettings, sender: Sende
                         file = %path.display(),
                         "candidate PDF detected"
                     );
-
-                    let sender = sender.clone();
-
-                    thread::spawn(move || {
-                        if wait_until_stable(&path, stable_checks, stable_delay_ms) {
-                            debug!(
-                                file = %path.display(),
-                                "file stable, dispatching for processing"
-                            );
-                            if sender.send(Message::Event(Event { path })).is_err() {
-                                warn!("orchestrator channel closed, dropping event");
-                            }
-                        } else {
-                            warn!(
-                                file = %path.display(),
-                                "file did not stabilize"
-                            );
+                    if wait_until_stable(&path, stable_checks, stable_delay_ms) {
+                        debug!(
+                            file = %path.display(),
+                            "file stable, dispatching for processing"
+                        );
+                        if sender.send(Message::Event(Event { path })).is_err() {
+                            warn!("orchestrator channel closed, dropping event");
                         }
-                    });
+                    } else {
+                        warn!(
+                            file = %path.display(),
+                            "file did not stabilize"
+                        );
+                    }
                 }
             }
         }
@@ -90,7 +86,7 @@ pub fn start(paths: Vec<PathBuf>, processing: &ProcessingSettings, sender: Sende
     Ok(())
 }
 
-fn is_candidate_pdf(path: &PathBuf) -> bool {
+fn is_candidate_pdf(path: &Path) -> bool {
     path.is_file()
     && path
         .extension()
@@ -99,10 +95,11 @@ fn is_candidate_pdf(path: &PathBuf) -> bool {
 }
 
 
-fn wait_until_stable(path: &PathBuf, stable_checks: usize, stable_delay_ms: u64) -> bool {
-    let mut last_size = None;
+fn wait_until_stable(path: &Path, stable_checks: usize, stable_delay_ms: u64) -> bool {
+    let mut last_size: Option<u64> = None;
 
     for attempt in 0..stable_checks {
+        thread::sleep(Duration::from_millis(stable_delay_ms));
         match std::fs::metadata(path) {
             Ok(meta) => {
                 let size = meta.len();
@@ -128,8 +125,6 @@ fn wait_until_stable(path: &PathBuf, stable_checks: usize, stable_delay_ms: u64)
                 return false;
             }
         }
-
-        thread::sleep(Duration::from_millis(stable_delay_ms));
     }
 
     false
