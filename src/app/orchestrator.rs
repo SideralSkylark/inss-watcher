@@ -1,4 +1,4 @@
-use std::{path::PathBuf, sync::{Arc, Mutex, mpsc::{self, Receiver, SyncSender}}, thread::spawn};
+use std::{path::PathBuf, sync::{Arc, Mutex, mpsc::{self, Receiver, SyncSender}}};
 use anyhow::Context;
 use tracing::{debug, warn};
 
@@ -6,6 +6,7 @@ use crate::{app::processor, config::{Settings}, infra::{persistence, watch}};
 
 pub struct Daemon {
     state: State,
+    #[allow(dead_code)]
     settings: Settings,
     sender: SyncSender<PathBuf>,
 }
@@ -44,10 +45,9 @@ impl Daemon {
             return Ok(());
         }
 
-        let settings = self.settings.clone();
-        spawn(move || {
-            processor::process_file(event.path, &settings);
-        });
+        if let Err(e) = self.sender.send(event.path) {
+            warn!(error=%e, "work queue closed unexpectedly");
+        }
         Ok(())
     }
 
