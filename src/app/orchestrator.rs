@@ -91,13 +91,15 @@ pub struct Event {
 pub fn start() -> anyhow::Result<()> {
     let settings = Settings::load()?;
 
+    if let Some(parent) = settings.db.path.parent() {
+        std::fs::create_dir_all(parent)
+            .context("failed to create data directory")?;
+    }
+
     let num_workers = settings.processing.worker_threads;
     let dirs_to_watch = settings.watcher.dirs_to_watch.clone();
     let processing = settings.processing.clone();
-
-    let db_path = settings.db.path
-        .canonicalize()
-        .unwrap_or_else(|_| settings.db.path.clone());
+    let db_path = settings.db.path.clone();
 
     let (work_tx, work_rx) = mpsc::sync_channel::<PathBuf>(64);
 
