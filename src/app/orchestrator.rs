@@ -2,7 +2,7 @@ use std::{path::PathBuf, sync::{Arc, Mutex, mpsc::{self, Receiver, SyncSender}}}
 use anyhow::Context;
 use tracing::{debug, warn};
 
-use crate::{app::processor, config::{Settings}, infra::{persistence, watch}};
+use crate::{app::processor, config::Settings, infra::{ipc, persistence, watch}};
 
 pub struct Daemon {
     state: State,
@@ -118,6 +118,9 @@ pub fn start() -> anyhow::Result<()> {
     }
 
     let (tx, rx) = mpsc::channel::<Message>();
+
+    ipc::start(&settings.daemon.socket_path, tx.clone())?;
+
     let mut daemon = Daemon {
         state: State::Starting,
         settings,

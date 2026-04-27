@@ -8,6 +8,7 @@ pub struct Settings {
     pub watcher: WatcherSettings,
     pub db: DatabaseSettings,
     pub processing: ProcessingSettings,
+    pub daemon: DaemonSettings,
     pub quarantine: QuarantineSettings,
 }
 
@@ -33,6 +34,12 @@ pub struct ProcessingSettings {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(default)]
+pub struct DaemonSettings {
+    pub socket_path: PathBuf,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(default)]
 pub struct QuarantineSettings {
     pub quarantine_path: PathBuf,
 }
@@ -43,6 +50,7 @@ impl Default for Settings {
             watcher: WatcherSettings::default(),
             db: DatabaseSettings::default(),
             processing: ProcessingSettings::default(),
+            daemon: DaemonSettings::default(),
             quarantine: QuarantineSettings::default(),
         }
     }
@@ -102,6 +110,12 @@ impl Default for ProcessingSettings {
             stable_delay_ms: 400,
             worker_threads: 4,
         }
+    }
+}
+
+impl Default for DaemonSettings {
+    fn default() -> Self {
+        Self { socket_path: PathBuf::from("/tmp/inss-watcher.sock") }
     }
 }
 

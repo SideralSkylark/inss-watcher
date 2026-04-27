@@ -15,7 +15,7 @@ pub struct IpcResponse {
     status: &'static str,
 }
 
-fn start(socket_path: &Path, tx: Sender<Message>) -> anyhow::Result<()> {
+pub fn start(socket_path: &Path, tx: Sender<Message>) -> anyhow::Result<()> {
     debug!("starting ipc socket");
     if socket_path.exists() {
         fs::remove_file(socket_path)?;
