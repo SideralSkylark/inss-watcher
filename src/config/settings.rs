@@ -99,7 +99,10 @@ impl Default for WatcherSettings {
 
 impl Default for DatabaseSettings {
     fn default() -> Self {
-        Self { path: PathBuf::from("inss.db") }
+        let path = dirs::data_local_dir()
+            .unwrap_or_else(|| PathBuf::from("."))
+            .join("inss-watcher/inss.db");
+        Self { path: path }
     }
 }
 
@@ -115,7 +118,10 @@ impl Default for ProcessingSettings {
 
 impl Default for DaemonSettings {
     fn default() -> Self {
-        Self { socket_path: PathBuf::from("/tmp/inss-watcher.sock") }
+        let path = dirs::data_local_dir()
+            .unwrap_or_else(|| PathBuf::from("."))
+            .join("inss-watcher/inss-watcher.sock");
+        Self { socket_path: path }
     }
 }
 
