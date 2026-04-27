@@ -57,11 +57,14 @@ impl Daemon {
                 self.state = State::Stopping;
                 return Ok(true);
             },
-            Command::Resume => { 
-                self.state = State::Running;
-            },
             Command::Rescan => { 
                 rescan();
+            },
+            Command::Pause => {
+                pause();
+            },
+            Command::Resume => { 
+                self.state = State::Running;
             },
         }
 
@@ -76,8 +79,9 @@ pub enum Message {
 
 pub enum Command {
     Stop,
-    Resume,
     Rescan,
+    Pause,
+    Resume,
 }
 
 pub struct Event {
@@ -135,5 +139,9 @@ pub fn start() -> anyhow::Result<()> {
 
 fn rescan() {
     warn!("resan not implemented");
+}
+
+fn pause() {
+    warn!("pause not implemented");
 }
 

@@ -5,27 +5,27 @@
 ### Detection & Parsing
 - [x] RF01: Detect PDF files in watched directories
 - [x] RF02: Extract text from PDF files (handle scanned/OCR)
-- [x] RF03: Identify INSS guides vs payment receipts vs other files 
+- [x] RF03: Identify INSS guides vs payment receipts vs other files
 - [x] RF04: Extract reference period (month/year) from documents
 - [x] RF05: Extract contributor number/reference number
 
 ### File Organization
-- [x] RF06: Generate destination path based on date + contributor 
+- [x] RF06: Generate destination path based on date + contributor
 - [x] RF07: Move files to appropriate directory
-- [x] RF08: Handle naming conflicts (rename if file exists) 
+- [x] RF08: Handle naming conflicts (rename if file exists)
 
 ### Matching System
-- [x] RF9: Store metadata of processed guides
+- [x] RF09: Store metadata of processed guides
 - [x] RF10: Match incoming payments with existing guides
 - [x] RF11: Move matched pairs to final organized location
-- [] RF12: Retain unmatched guides for future matching (configurable period)
-- [] RF13: Clean up old unmatched records
+- [ ] RF12: Retain unmatched guides for future matching (configurable period)
+- [ ] RF13: Clean up old unmatched records
 
 ### Monitoring & Control
-- [] RF14: Log all actions (file processed, moved, matched)
-- [] RF15: Provide CLI for manual operations
-- [] RF16: Export list of unmatched documents
-- [] RF17: Configuration via file or CLI arguments
+- [ ] RF14: Log all actions (file processed, moved, matched)
+- [ ] RF15: Provide CLI for manual operations
+- [ ] RF16: Export list of unmatched documents
+- [ ] RF17: Configuration via file or CLI arguments
 
 ## Non-Functional Requirements
 - NF01: **Reliability**: Must not lose or corrupt files during processing
@@ -36,40 +36,48 @@
 - NF06: **Observability**: Clear logs showing what happened to each file
 
 ## User Stories
-**As a user, I want to:**
-- [] US01: Drop a PDF in Downloads and have it automatically organized
-- [] US02: See what happened to my files via logs
-- [] US03: Manually trigger processing of old files
-- [] US04: See unmatched guides waiting for payments
-- [] US05: Fix incorrect matches manually
-- [] US06: Configure watched directories
-- [] US07: Pause/stop the daemon cleanly
+- [ ] US01: Drop a PDF in Downloads and have it automatically organized
+- [ ] US02: See what happened to my files via logs
+- [ ] US03: Manually trigger processing of old files
+- [ ] US04: See unmatched guides waiting for payments
+- [ ] US05: Fix incorrect matches manually
+- [ ] US06: Configure watched directories
+- [ ] US07: Pause/stop the daemon cleanly
 
-## Next Steps & Improvements
+---
 
-### Architecture & Concurrency
-- [ ] **Transition to Async (Tokio)**: Migrate the synchronous `mpsc` and `std::thread` implementation to `tokio`. This includes using `tokio::fs`, `tokio::sync::mpsc`, and `tokio::spawn` for better resource management.
-- [ ] **Robust Orchestrator Loop**: Implement a proper control loop for the daemon that handles signals (SIGINT, SIGTERM) gracefully and allows for runtime commands (pause, resume, reload).
-- [ ] **Database Migrations**: Replace the manual `schema.sql` initialization with a robust migration tool like `rusqlite_migration` or `refinery`.
+## Roadmap
 
-### Core Logic & Robustness
-- [ ] **Advanced Error Handling**: Move away from using `anyhow` everywhere. Implement custom error types using `thiserror` for better error categorization (e.g., `ParsingError`, `StorageError`).
-- [ ] **Precision Money Handling**: Refactor `Money` parsing to avoid `f64` and use cents (integers) or a dedicated decimal crate to prevent precision issues.
-- [ ] **Improved PDF & OCR**: 
-    - Add startup checks for external dependencies (`pdftoppm`, `tesseract`).
-    - Explore native Rust crates for OCR or more robust PDF text extraction.
-- [ ] **Configurable Policies**: Move hardcoded paths and business rules (quarantine logic, retention periods) into the configuration system.
+### Phase 1 — Finish the daemon skeleton
 
-### CLI & User Experience
-- [ ] **Comprehensive CLI**: Build a multi-command CLI using `clap` (e.g., `inss-watcher start`, `inss-watcher status`, `inss-watcher rescan`).
-- [ ] **Dry-Run Mode**: Implement a flag to simulate file movements and matching without making actual changes to the filesystem or database.
-- [ ] **Enhanced Configuration**: Use the `config` crate to support merging settings from `config.toml`, environment variables, and CLI arguments.
+Get the process running reliably end-to-end before adding features.
 
-### Quality & Observability
-- [ ] **Testing Strategy**:
-    - **Unit Tests**: Add tests for domain logic (parsing, matching) with various mock inputs.
-    - **Integration Tests**: Use temporary directories and in-memory databases to test the full pipeline.
-- [ ] **Structured Logging**: Refine `tracing` usage to include more contextual metadata in logs and support different output formats (JSON for production, pretty for development).
-- [ ] **CI/CD Pipeline**: Set up GitHub Actions for automated linting (`clippy`), formatting (`fmt`), and test execution.
-- [ ] **Documentation**: Improve code documentation with `rustdoc` comments and generate a project site.
+- [ ] **IPC socket + JSON-lines protocol** — Unix socket listener thread, `{"command":"rescan"}` in, `{"status":"ok"}` out. *(RF15, US07)*
+- [ ] **Signal handling** — Send `Command::Stop` on SIGINT/SIGTERM for clean shutdown. Use the `ctrlc` crate. *(US07)*
+- [ ] **Implement `rescan()`** — Walk watched dirs with `walkdir`, push every PDF into the work queue. *(US03, RF12)*
+- [ ] **`inss-ctl` binary** — Second binary that connects to the socket, sends a command, prints the reply. *(RF15)*
 
+### Phase 2 — Correctness
+
+Before adding features, trust that what you have is right.
+
+- [ ] **Unit tests for parsing and matching** — Test `parse_guide`, `parse_receipt`, `classify_doc` with fixture strings. No filesystem, no DB. *(NF02)*
+- [ ] **Custom error types with `thiserror`** — Replace `anyhow` in the domain layer (`ParseError`, `StorageError`). Keep `anyhow` in the application layer. *(NF01)*
+- [ ] **Fix money precision** — Store values as integer cents instead of `f64`. *(NF01)*
+- [ ] **DB migrations with `rusqlite_migration`** — Replace the raw `schema.sql` init with versioned migrations. *(NF01)*
+
+### Phase 3 — CLI and observability
+
+The daemon works. Now make it usable and debuggable.
+
+- [ ] **Full `clap` CLI** — Subcommands: `start`, `stop`, `rescan`, `status`. One binary instead of two. *(RF15, RF17, US03)*
+- [ ] **`status` command + unmatched export** — Query the DB, return a JSON blob: queue depth, matched count, unmatched list. *(RF16, US04)*
+- [ ] **Startup dependency checks** — Check for `pdftoppm` and `tesseract` on startup, fail loudly if missing. Add JSON log mode for production. *(NF06, RF14)*
+- [ ] **Dry-run mode** — Flag through `Settings` to log what would happen without moving files or writing to DB. *(NF02)*
+
+### Phase 4 — Later
+
+Only worth doing once the synchronous version is stable and tested.
+
+- [ ] **Retention + cleanup** — Configurable quarantine period, periodic cleanup job. Document options in `config.toml`. *(RF12, RF13)*
+- [ ] **CI/CD + rustdoc** — GitHub Actions: `clippy`, `fmt`, `cargo test`. Write module-level docs incrementally.
