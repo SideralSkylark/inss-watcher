@@ -20,6 +20,10 @@ use crate::infra::{fs, ocr, pdf, persistence};
 pub fn process_file(path: PathBuf, settings: &Settings) {
     debug!("starting file processing");
 
+    if !pdf::is_candidate(&path) {
+        return;
+    }
+
     let mut text = match pdf::extract_text(&path) {
         Ok(t) => t,
         Err(e) => {

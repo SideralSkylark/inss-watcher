@@ -57,18 +57,53 @@ impl Daemon {
                 self.state = State::Stopping;
                 return Ok(true);
             },
-            Command::Rescan => { 
-                rescan();
-            },
-            Command::Pause => {
-                pause();
-            },
-            Command::Resume => { 
-                self.state = State::Running;
-            },
+            Command::Rescan => { self.rescan(); },
+            Command::Pause => { self.pause(); },
+            Command::Resume => { self.resume(); },
         }
 
         Ok(false)
+    }
+
+    fn rescan(&mut self) {
+        use walkdir::WalkDir;
+        use tracing::info;
+
+        info!("rescanning watched directories");
+
+        for dir in &self.settings.watcher.dirs_to_watch {
+            let pdfs = WalkDir::new(dir)
+                .follow_links(false)
+                .into_iter()
+                .filter_map(|e| e.ok())
+                .filter(|e| {
+                    e.path()
+                        .extension()
+                        .map(|x| x.eq_ignore_ascii_case("pdf"))
+                        .unwrap_or(false)
+                });
+
+            for entry in pdfs {
+                let path = entry.into_path();
+                if self.sender.try_send(path.clone()).is_err() {
+                    warn!(file = %path.display(), "work queue full or closed during rescan");
+                }
+            }
+        }    
+    }
+
+    fn pause(&mut self) {
+        use tracing::info;
+
+        info!("daemon paused");
+        self.state = State::Paused;
+    }
+
+    fn resume(&mut self) {
+        use tracing::info;
+
+        info!("daemon resumed");
+        self.state = State::Running;
     }
 }
 
@@ -132,21 +167,18 @@ pub fn start() -> anyhow::Result<()> {
     persistence::init(&db_path)
         .context("database initialization failed")?;
     debug!("database initialized");
-    
+
     watch::start(
         dirs_to_watch,
         &processing,
         tx.clone(),
     )?;
 
+    let tx_signal = tx.clone();
+    ctrlc::set_handler(move || {
+        let _ = tx_signal.send(Message::Command(Command::Stop));
+    })?;
+
     daemon.run(rx)
-}
-
-fn rescan() {
-    warn!("resan not implemented");
-}
-
-fn pause() {
-    warn!("pause not implemented");
 }
 

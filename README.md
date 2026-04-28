@@ -52,10 +52,10 @@
 
 Get the process running reliably end-to-end before adding features.
 
-- [ ] **IPC socket + JSON-lines protocol** — Unix socket listener thread, `{"command":"rescan"}` in, `{"status":"ok"}` out. *(RF15, US07)*
-- [ ] **Signal handling** — Send `Command::Stop` on SIGINT/SIGTERM for clean shutdown. Use the `ctrlc` crate. *(US07)*
-- [ ] **Implement `rescan()`** — Walk watched dirs with `walkdir`, push every PDF into the work queue. *(US03, RF12)*
-- [ ] **`inss-ctl` binary** — Second binary that connects to the socket, sends a command, prints the reply. *(RF15)*
+- [x] **IPC socket + JSON-lines protocol** — Unix socket listener thread, `{"command":"rescan"}` in, `{"status":"ok"}` out. *(RF15, US07)*
+- [x] **Signal handling** — Send `Command::Stop` on SIGINT/SIGTERM for clean shutdown. Use the `ctrlc` crate. *(US07)*
+- [x] **Implement `rescan()`** — Walk watched dirs with `walkdir`, push every PDF into the work queue. *(US03, RF12)*
+- [x] **`inss-ctl` binary** — Second binary that connects to the socket, sends a command, prints the reply. *(RF15)*
 
 ### Phase 2 — Correctness
 

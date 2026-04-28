@@ -6,7 +6,39 @@ use tracing::debug;
 use anyhow::{anyhow, bail};
 
 pub fn extract_text(path: &Path) -> anyhow::Result<String> {
-    pdf_extract::extract_text(path).map_err(Into::into)
+    let p = path.to_path_buf();
+    std::panic::catch_unwind(|| pdf_extract::extract_text(&p))
+        .map_err(|_| anyhow!("pdf extraction panicked (malformed font data) for {:?}", path))?
+        .map_err(Into::into)
+}
+
+pub fn page_count(path: &Path) -> anyhow::Result<usize> {
+    let doc = lopdf::Document::load(path)?;
+    Ok(doc.get_pages().len())
+}
+
+pub fn is_candidate(path: &Path) -> bool {
+    let size = match std::fs::metadata(path) {
+        Ok(m) => m.len(),
+        Err(_) => return false,
+    };
+
+    if size > 5 * 1024 * 1024 {
+        debug!(file = %path.display(), "skipping: file too large");
+        return false;
+    }
+
+    match page_count(path) {
+        Ok(n) if n > 2 => {
+            debug!(file = %path.display(), pages = n, "skipping: too many pages");
+            return false;
+        }
+        Err(e) => {
+            debug!(file = %path.display(), error = %e, "skipping: could not read pages");
+            return false;
+        }
+        Ok(_) => true,
+    }
 }
 
 pub fn pdf_to_img(path: &Path) -> anyhow::Result<PathBuf> {
