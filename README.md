@@ -62,7 +62,7 @@ Get the process running reliably end-to-end before adding features.
 Before adding features, trust that what you have is right.
 
 - [x] **Unit tests for parsing and matching** — Test `parse_guide`, `parse_receipt`, `classify_doc` with fixture strings. No filesystem, no DB. *(NF02)*
-- [ ] **Custom error types with `thiserror`** — Replace `anyhow` in the domain layer (`ParseError`, `StorageError`). Keep `anyhow` in the application layer. *(NF01)*
+- [x] **Custom error types with `thiserror`** — Replace `anyhow` in the domain layer (`ParseError`, `StorageError`). Keep `anyhow` in the application layer. *(NF01)*
 - [x] **Fix money precision** — Store values as integer cents instead of `f64`. *(NF01)*
 - [ ] **DB migrations with `rusqlite_migration`** — Replace the raw `schema.sql` init with versioned migrations. *(NF01)*
 

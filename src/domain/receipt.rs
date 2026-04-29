@@ -41,7 +41,7 @@ impl From<(ParsedReceipt, PathBuf)> for PaymentReceipt {
 
 pub fn parse_receipt(text: &str) -> Result<ParsedReceipt, ReceiptParseError> {
     Ok(ParsedReceipt { 
-        reference_num: extract_reference_num(text).ok_or(ReceiptParseError::MissingDate)?,
+        reference_num: extract_reference_num(text).ok_or(ReceiptParseError::MissingReference)?,
         payment_date: extract_payment_date(text).ok_or(ReceiptParseError::MissingDate)?,
         amount: extract_amount(text).ok_or(ReceiptParseError::MissingAmount)?,
     })
