@@ -16,6 +16,7 @@ notify = "8.2.0"
 pdf-extract = "0.10.0"
 rusqlite = { version = "0.38.0", features = ["chrono"] }
 regex = "1.12.2"
+fancy-regex = "0.18.0"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
 tracing-appender = "0.2"

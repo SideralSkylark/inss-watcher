@@ -77,17 +77,32 @@ pub fn extract_contributor_num(text: &str) -> Option<String> {
     Some(caps[1].to_string())
 }
 
-fn extract_reference_period(text: &str) -> Option<ReferencePeriod> { 
-    let re = regex::Regex::new(r"(0?[1-9]|1[0-2])/(\d{4})").ok()?; 
+fn extract_reference_period(text: &str) -> Option<ReferencePeriod> {
+    // First try: match MM/YYYY that appears immediately after a full DD/MM/YYYY date
+    // This is the specific format: "03/11/2025 14:4610/2025"
+    let anchored = fancy_regex::Regex::new(
+        r"\d{2}/\d{2}/\d{4}[^/]{0,10}(0?[1-9]|1[0-2])/(\d{4})"
+    ).ok()?;
+
+    if let Ok(Some(cap)) = anchored.captures(text) {
+        return Some(ReferencePeriod {
+            month: cap.get(1)?.as_str().parse().ok()?,
+            year: cap.get(2)?.as_str().parse().ok()?,
+        });
+    }
+
+    // Fallback: plain MM/YYYY not inside a full date
+    let re = fancy_regex::Regex::new(r"(?<![/\d])(0?[1-9]|1[0-2])/(\d{4})(?!\d)").ok()?;
 
     re.captures_iter(text)
-        .last() 
-        .and_then(|cap| { 
-            Some(ReferencePeriod { 
-                month: cap[1].parse().ok()?, 
-                year: cap[2].parse().ok()?, 
-            }) 
-        }) 
+        .filter_map(|cap| cap.ok())
+        .filter_map(|cap| {
+            Some(ReferencePeriod {
+                month: cap.get(1)?.as_str().parse().ok()?,
+                year: cap.get(2)?.as_str().parse().ok()?,
+            })
+        })
+        .last()
 }
 
 fn extract_amount(text: &str) -> Option<Money> {
