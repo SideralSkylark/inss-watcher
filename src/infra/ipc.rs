@@ -50,7 +50,10 @@ fn handle_connection(stream: UnixStream, tx: Sender<Message>) {
         };
 
         let (msg, reply) = match serde_json::from_str::<IpcRequest>(&line) {
-            Err(_) => (None, IpcResponse { status: "err", message: "invalid json" }),
+            Err(e) => {
+                warn!(error = %e, raw = %line, "received invalid json");
+                (None, IpcResponse { status: "err", message: "invalid json" })
+            },
             Ok(req) => match req.command.as_str() {
                 "stop"   => (Some(Message::Command(Command::Stop)),   IpcResponse { status: "ok", message: "stopping" }),
                 "rescan" => (Some(Message::Command(Command::Rescan)), IpcResponse { status: "ok", message: "rescanning" }),

@@ -2,7 +2,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::Context;
-use tracing::{info, error};
+use tracing::{info, error, instrument};
 
 use crate::domain::guide::InssGuide;
 use crate::domain::receipt::PaymentReceipt;
@@ -49,9 +49,19 @@ pub fn move_unique(src: &Path, dest: &Path) -> anyhow::Result<PathBuf> {
 
 /// moves a guide + receipt pair.
 /// If moving the receipt fails, the guide move is rolled back.
+#[instrument(
+    name = "move_pair",
+    skip(guide, receipt),
+    fields(
+        guide = %guide.path.display(),
+        receipt = %receipt.path.display(),
+        contributor = %guide.contributor_num,
+        period = %format!("{}/{}", guide.reference_period.month, guide.reference_period.year),
+    )
+)]
 pub fn move_pair(guide: &InssGuide, receipt: &PaymentReceipt) -> anyhow::Result<MovedPairPaths>{
     if !guide.path.exists() || !receipt.path.exists() {
-        anyhow::bail!("event=missing_paths stage=move_pair_path_check");
+        anyhow::bail!("one or more source files missing before move");
     } 
 
     let output_dir = inss_output_dir(guide.reference_period.month, guide.reference_period.year, &guide.contributor_num);
@@ -80,6 +90,13 @@ pub fn move_pair(guide: &InssGuide, receipt: &PaymentReceipt) -> anyhow::Result<
 }
 
 /// Moves a single file to quarantine and returns the final path.
+#[instrument(
+    name = "quarantine",
+    skip(src, quarantine_dir),
+    fields(
+        file = %src.display()
+    )
+)]
 pub fn quarantine(src: &Path, quarantine_dir: &Path) -> anyhow::Result<PathBuf> {
     if !src.exists() {
         return Ok(src.to_path_buf());
