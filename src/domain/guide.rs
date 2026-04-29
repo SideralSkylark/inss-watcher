@@ -1,7 +1,18 @@
 use std::path::PathBuf;
 
-use anyhow::Context;
 use crate::domain::money::Money;
+
+#[derive(Debug, thiserror::Error)]
+pub enum ParseGuideError {
+    #[error("missing guide reference")]
+    MissingReference,
+    #[error("missing contributor number")]
+    MissingContributor,
+    #[error("missing guide period")]
+    MissingPeriod,
+    #[error("Missing payment amount")]
+    MissingAmount,
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct ReferencePeriod {
@@ -38,13 +49,13 @@ impl From<(ParsedGuide, PathBuf)> for InssGuide {
     }
 }
 
-pub fn parse_guide(text: &str) -> anyhow::Result<ParsedGuide> {
+pub fn parse_guide(text: &str) -> Result<ParsedGuide, ParseGuideError> {
     Ok(
         ParsedGuide { 
-            reference_num: extract_guide_reference(text).context("missing guide reference")?, 
-            contributor_num: extract_contributor_num(text).context("missing contributor number")?,
-            reference_period: extract_reference_period(text).context("missing reference period")?, 
-            amount: extract_amount(text).context("missing payment amount")?, 
+            reference_num: extract_guide_reference(text).ok_or(ParseGuideError::MissingReference)?,
+            contributor_num: extract_contributor_num(text).ok_or(ParseGuideError::MissingContributor)?,
+            reference_period: extract_reference_period(text).ok_or(ParseGuideError::MissingReference)?,
+            amount: extract_amount(text).ok_or(ParseGuideError::MissingAmount)?,
         }
     )
 }

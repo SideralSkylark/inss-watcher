@@ -1,8 +1,17 @@
 use std::path::PathBuf;
 
-use anyhow::Context;
 use chrono::NaiveDate;
 use crate::domain::money::Money;
+
+#[derive(Debug, thiserror::Error)]
+pub enum ReceiptParseError {
+    #[error("missing reference number")]
+    MissingReference,
+    #[error("missing payment date")]
+    MissingDate,
+    #[error("missing payment amount")]
+    MissingAmount,
+}
 
 #[derive(Debug, Clone)]
 pub struct ParsedReceipt {
@@ -30,11 +39,11 @@ impl From<(ParsedReceipt, PathBuf)> for PaymentReceipt {
     }
 }
 
-pub fn parse_receipt(text: &str) -> anyhow::Result<ParsedReceipt> {
+pub fn parse_receipt(text: &str) -> Result<ParsedReceipt, ReceiptParseError> {
     Ok(ParsedReceipt { 
-        reference_num: extract_reference_num(text).context("missing reference number")?, 
-        payment_date: extract_payment_date(text).context("missing payment date")?,
-        amount: extract_amount(text).context("missing payment amount")?,
+        reference_num: extract_reference_num(text).ok_or(ReceiptParseError::MissingDate)?,
+        payment_date: extract_payment_date(text).ok_or(ReceiptParseError::MissingDate)?,
+        amount: extract_amount(text).ok_or(ReceiptParseError::MissingAmount)?,
     })
 }
 

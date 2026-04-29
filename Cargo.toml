@@ -30,4 +30,5 @@ walkdir = "2.5.0"
 ctrlc = "3.5.2"
 lopdf = "0.40.0"
 toml = "0.8"
+thiserror = "2.0.18"
 
