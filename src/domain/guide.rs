@@ -8,9 +8,9 @@ pub enum ParseGuideError {
     MissingReference,
     #[error("missing contributor number")]
     MissingContributor,
-    #[error("missing guide period")]
+    #[error("missing reference period")]
     MissingPeriod,
-    #[error("Missing payment amount")]
+    #[error("missing payment amount")]
     MissingAmount,
 }
 
@@ -54,7 +54,7 @@ pub fn parse_guide(text: &str) -> Result<ParsedGuide, ParseGuideError> {
         ParsedGuide { 
             reference_num: extract_guide_reference(text).ok_or(ParseGuideError::MissingReference)?,
             contributor_num: extract_contributor_num(text).ok_or(ParseGuideError::MissingContributor)?,
-            reference_period: extract_reference_period(text).ok_or(ParseGuideError::MissingReference)?,
+            reference_period: extract_reference_period(text).ok_or(ParseGuideError::MissingPeriod)?,
             amount: extract_amount(text).ok_or(ParseGuideError::MissingAmount)?,
         }
     )
