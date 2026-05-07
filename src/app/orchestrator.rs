@@ -2,7 +2,7 @@ use std::{path::PathBuf, sync::{Arc, Mutex, mpsc::{self, Receiver, SyncSender}}}
 use anyhow::Context;
 use tracing::{debug, warn};
 
-use crate::{app::processor, config::Settings, infra::{ipc, persistence, watch}};
+use crate::{app::processor, config::Settings, infra::{deps, ipc, persistence, watch}};
 
 pub struct Daemon {
     state: State,
@@ -124,6 +124,8 @@ pub struct Event {
 }
 
 pub fn start() -> anyhow::Result<()> {
+    deps::check()?;
+
     let settings = Settings::load()?;
 
     if let Some(parent) = settings.db.path.parent() {

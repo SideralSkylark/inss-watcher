@@ -1,3 +1,4 @@
+pub mod deps;
 pub mod fs;
 pub mod ipc;
 pub mod logging;
