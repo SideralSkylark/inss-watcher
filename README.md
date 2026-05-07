@@ -64,13 +64,12 @@ Before adding features, trust that what you have is right.
 - [x] **Unit tests for parsing and matching** — Test `parse_guide`, `parse_receipt`, `classify_doc` with fixture strings. No filesystem, no DB. *(NF02)*
 - [x] **Custom error types with `thiserror`** — Replace `anyhow` in the domain layer (`ParseError`, `StorageError`). Keep `anyhow` in the application layer. *(NF01)*
 - [x] **Fix money precision** — Store values as integer cents instead of `f64`. *(NF01)*
-- [ ] **DB migrations with `rusqlite_migration`** — Replace the raw `schema.sql` init with versioned migrations. *(NF01)*
 
 ### Phase 3 — CLI and observability
 
 The daemon works. Now make it usable and debuggable.
 
-- [ ] **Full `clap` CLI** — Subcommands: `start`, `stop`, `rescan`, `status`. One binary instead of two. *(RF15, RF17, US03)*
+- [x] **Full `clap` CLI** — Subcommands: `start`, `stop`, `rescan`, `status`. One binary instead of two. *(RF15, RF17, US03)*
 - [ ] **`status` command + unmatched export** — Query the DB, return a JSON blob: queue depth, matched count, unmatched list. *(RF16, US04)*
 - [ ] **Startup dependency checks** — Check for `pdftoppm` and `tesseract` on startup, fail loudly if missing. Add JSON log mode for production. *(NF06, RF14)*
 - [ ] **Dry-run mode** — Flag through `Settings` to log what would happen without moving files or writing to DB. *(NF02)*
