@@ -23,9 +23,9 @@
 
 ### Monitoring & Control
 - [ ] RF14: Log all actions (file processed, moved, matched)
-- [ ] RF15: Provide CLI for manual operations
+- [x] RF15: Provide CLI for manual operations
 - [ ] RF16: Export list of unmatched documents
-- [ ] RF17: Configuration via file or CLI arguments
+- [x] RF17: Configuration via file or CLI arguments
 
 ## Non-Functional Requirements
 - NF01: **Reliability**: Must not lose or corrupt files during processing
@@ -41,25 +41,88 @@
 - [ ] US03: Manually trigger processing of old files
 - [ ] US04: See unmatched guides waiting for payments
 - [ ] US05: Fix incorrect matches manually
-- [ ] US06: Configure watched directories
-- [ ] US07: Pause/stop the daemon cleanly
+- [x] US06: Configure watched directories
+- [x] US07: Pause/stop the daemon cleanly
+
+---
+
+## Installation & Running
+
+### Build
+
+```bash
+cargo build --release
+# binary at: target/release/inss-watcher
+```
+
+### Running manually (foreground)
+
+```bash
+inss-watcher start          # starts the daemon, blocks the terminal
+inss-watcher ctl rescan     # send commands from another shell
+inss-watcher ctl pause
+inss-watcher ctl resume
+inss-watcher ctl stop
+```
+
+### Running as a systemd user service (recommended)
+
+Create the service file:
+
+```bash
+mkdir -p ~/.config/systemd/user
+cat > ~/.config/systemd/user/inss-watcher.service << 'EOF'
+[Unit]
+Description=INSS Watcher daemon
+After=default.target
+
+[Service]
+ExecStart=%h/.cargo/bin/inss-watcher start
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target
+EOF
+```
+
+Install the binary and enable the service:
+
+```bash
+cargo install --path .
+
+systemctl --user daemon-reload
+systemctl --user enable --now inss-watcher
+```
+
+Day-to-day commands:
+
+```bash
+systemctl --user status inss-watcher        # check it is running
+journalctl --user -u inss-watcher -f        # follow logs
+systemctl --user stop inss-watcher          # stop
+systemctl --user start inss-watcher         # start
+inss-watcher ctl rescan                     # re-scan watched dirs
+```
+
+> **Note:** by default user services only run while you are logged in.
+> To keep the daemon running on a headless or server machine:
+> ```bash
+> loginctl enable-linger $USER
+> ```
 
 ---
 
 ## Roadmap
 
-### Phase 1 — Finish the daemon skeleton
-
-Get the process running reliably end-to-end before adding features.
+### Phase 1 — Finish the daemon skeleton 
 
 - [x] **IPC socket + JSON-lines protocol** — Unix socket listener thread, `{"command":"rescan"}` in, `{"status":"ok"}` out. *(RF15, US07)*
 - [x] **Signal handling** — Send `Command::Stop` on SIGINT/SIGTERM for clean shutdown. Use the `ctrlc` crate. *(US07)*
 - [x] **Implement `rescan()`** — Walk watched dirs with `walkdir`, push every PDF into the work queue. *(US03, RF12)*
 - [x] **`inss-ctl` binary** — Second binary that connects to the socket, sends a command, prints the reply. *(RF15)*
 
-### Phase 2 — Correctness
-
-Before adding features, trust that what you have is right.
+### Phase 2 — Correctness 
 
 - [x] **Unit tests for parsing and matching** — Test `parse_guide`, `parse_receipt`, `classify_doc` with fixture strings. No filesystem, no DB. *(NF02)*
 - [x] **Custom error types with `thiserror`** — Replace `anyhow` in the domain layer (`ParseError`, `StorageError`). Keep `anyhow` in the application layer. *(NF01)*
@@ -67,11 +130,9 @@ Before adding features, trust that what you have is right.
 
 ### Phase 3 — CLI and observability
 
-The daemon works. Now make it usable and debuggable.
-
-- [x] **Full `clap` CLI** — Subcommands: `start`, `stop`, `rescan`, `status`. One binary instead of two. *(RF15, RF17, US03)*
-- [ ] **`status` command + unmatched export** — Query the DB, return a JSON blob: queue depth, matched count, unmatched list. *(RF16, US04)*
-- [ ] **Startup dependency checks** — Check for `pdftoppm` and `tesseract` on startup, fail loudly if missing. Add JSON log mode for production. *(NF06, RF14)*
+- [x] **Full `clap` CLI** — Subcommands: `start`, `ctl stop`, `ctl rescan`, `ctl status`. One binary instead of two. *(RF15, RF17, US03)*
+- [ ] **Startup dependency checks** — Check for `pdftoppm` and `tesseract` on startup, fail loudly if missing. Add JSON log mode for production. *(NF06, RF14)* **← do this next**
+- [ ] **`status` command + unmatched export** — Query the DB, return a JSON blob: queue depth, matched count, unmatched list. *(RF16, US04)* **← then this**
 - [ ] **Dry-run mode** — Flag through `Settings` to log what would happen without moving files or writing to DB. *(NF02)*
 
 ### Phase 4 — Later
