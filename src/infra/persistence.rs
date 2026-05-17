@@ -65,13 +65,12 @@ pub fn guide_exists(guide: &ParsedGuide) -> anyhow::Result<bool> {
         "SELECT 1 FROM documents WHERE doc_type='guide' AND reference_num=?1 AND contributor_num=?2 AND ref_month=?3 AND ref_year=?4 LIMIT 1"
     )?;
 
-    let exists = stmt
-        .exists(params![
-            guide.reference_num,
-            guide.contributor_num,
-            guide.reference_period.month,
-            guide.reference_period.year
-        ])?;
+    let exists = stmt.exists(params![
+        guide.reference_num,
+        guide.contributor_num,
+        guide.reference_period.month,
+        guide.reference_period.year
+    ])?;
 
     Ok(exists)
 }
@@ -147,12 +146,11 @@ pub fn store_receipt(receipt: &PaymentReceipt) -> anyhow::Result<StoreOutcome> {
 
 pub fn find_matching_receipt(guide: &InssGuide) -> anyhow::Result<Option<PaymentReceipt>> {
     let c = conn();
-    let mut stmt = c
-        .prepare(
-            "SELECT path, reference_num, amount_cents, payment_date
+    let mut stmt = c.prepare(
+        "SELECT path, reference_num, amount_cents, payment_date
          FROM documents
          WHERE doc_type='receipt' AND reference_num=?1",
-        )?;
+    )?;
 
     let mut rows = stmt.query(params![guide.reference_num])?;
 
@@ -183,12 +181,11 @@ pub fn find_matching_receipt(guide: &InssGuide) -> anyhow::Result<Option<Payment
 
 pub fn find_matching_guide(receipt: &PaymentReceipt) -> anyhow::Result<Option<InssGuide>> {
     let c = conn();
-    let mut stmt = c
-        .prepare(
-            "SELECT path, reference_num, contributor_num, ref_month, ref_year, amount_cents
+    let mut stmt = c.prepare(
+        "SELECT path, reference_num, contributor_num, ref_month, ref_year, amount_cents
          FROM documents
          WHERE doc_type='guide' AND reference_num=?1",
-        )?;
+    )?;
 
     let mut rows = stmt.query(params![receipt.reference_num])?;
 
