@@ -168,13 +168,7 @@ fn try_match_guide(guide: &InssGuide, settings: &Settings) {
     );
 
     if let Some(receipt) = persistence::find_matching_receipt(guide) {
-        info!(
-            reference_num = %guide.reference_num,
-            period = %period,
-            "matching receipt found"
-        );
-
-        match fs::move_pair(&guide, &receipt) {
+        match fs::move_pair(&guide, &receipt, &settings.storage.output_path) {
             Ok(moved) => {
                 persist_moved_pair(&guide, &receipt, moved);
             }
@@ -211,7 +205,7 @@ fn try_match_receipt(receipt: &PaymentReceipt, settings: &Settings) {
             reference_num = %receipt.reference_num,
             "matching guide found"
         );
-        match fs::move_pair(&guide, &receipt) {
+        match fs::move_pair(&guide, &receipt, &settings.storage.output_path) {
             Ok(moved) => {
                 persist_moved_pair(&guide, &receipt, moved);
             }

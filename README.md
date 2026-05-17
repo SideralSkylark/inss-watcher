@@ -140,7 +140,7 @@ inss-watcher ctl rescan                     # re-scan watched dirs
 - [x] **Fix typos in logs and comments** — Correct `unavalible`, `sucessfull`, `insuported_type`, `resouce`, and "failed to updated".
 - [x] **Improve matching logic** — `within_period` only checks the deadline; add a lower bound to prevent matching with very old receipts.
 - [x] **Implement `queue_depth`** — The status command currently returns a placeholder `0` for the work queue depth.
-- [ ] **Configurable output directory** — Move the hardcoded `~/Documents/INSS` path into the `Settings` struct.
+- [x] **Configurable output directory** — Move the hardcoded `~/Documents/INSS` path into the `Settings` struct.
 - [ ] **Temporary directory cleanup** — The `inss_watcher` temp directory is created but never removed.
 - [ ] **Robust error handling** — Replace `unwrap()` calls in `persistence.rs` with proper error propagation to prevent daemon panics.
 - [ ] **Non-blocking work queue** — The orchestrator currently blocks when the work queue is full, which can make the daemon unresponsive to commands.

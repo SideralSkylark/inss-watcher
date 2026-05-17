@@ -10,6 +10,7 @@ pub struct Settings {
     pub processing: ProcessingSettings,
     pub daemon: DaemonSettings,
     pub quarantine: QuarantineSettings,
+    pub storage: StorageSettings,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -52,7 +53,24 @@ impl Default for Settings {
             processing: ProcessingSettings::default(),
             daemon: DaemonSettings::default(),
             quarantine: QuarantineSettings::default(),
+            storage: StorageSettings::default(),
         }
+    }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(default)]
+pub struct StorageSettings {
+    pub output_path: PathBuf,
+}
+
+impl Default for StorageSettings {
+    fn default() -> Self {
+        let path = dirs::document_dir()
+            .or_else(dirs::home_dir)
+            .unwrap_or_else(|| PathBuf::from("."))
+            .join("INSS");
+        Self { output_path: path }
     }
 }
 

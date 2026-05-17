@@ -59,12 +59,12 @@ pub fn move_unique(src: &Path, dest: &Path) -> anyhow::Result<PathBuf> {
         period = %format!("{}/{}", guide.reference_period.month, guide.reference_period.year),
     )
 )]
-pub fn move_pair(guide: &InssGuide, receipt: &PaymentReceipt) -> anyhow::Result<MovedPairPaths>{
+pub fn move_pair(guide: &InssGuide, receipt: &PaymentReceipt, base_path: &Path) -> anyhow::Result<MovedPairPaths>{
     if !guide.path.exists() || !receipt.path.exists() {
         anyhow::bail!("one or more source files missing before move");
     } 
 
-    let output_dir = inss_output_dir(guide.reference_period.month, guide.reference_period.year, &guide.contributor_num);
+    let output_dir = inss_output_dir(guide.reference_period.month, guide.reference_period.year, &guide.contributor_num, base_path);
 
     ensure_dir(&output_dir)?;
 
@@ -114,12 +114,9 @@ pub fn quarantine(src: &Path, quarantine_dir: &Path) -> anyhow::Result<PathBuf> 
 }
 
 /// computes the output directory for a resource given its metadata
-pub fn inss_output_dir(month: u8, year: u16, contributor_num: &str) -> PathBuf {
-    let mut base = dirs::document_dir()
-        .or_else(dirs::home_dir)
-        .unwrap();
+pub fn inss_output_dir(month: u8, year: u16, contributor_num: &str, base_path: &Path) -> PathBuf {
+    let mut base = base_path.to_path_buf();
 
-    base.push("INSS");
     base.push(year.to_string());
     base.push(format!("{:02}", month));
     base.push(format!("contributor_{contributor_num}"));
