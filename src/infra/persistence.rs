@@ -229,7 +229,7 @@ pub fn mark_matched_tx(tx: &Transaction, path: &Path) -> anyhow::Result<()> {
     Ok(())
 }
 
-pub fn query_status() -> anyhow::Result<StatusResponse> {
+pub fn query_status(queue_depth: usize) -> anyhow::Result<StatusResponse> {
     let c = conn();
 
     let matched: usize = c.query_row(
@@ -268,9 +268,8 @@ pub fn query_status() -> anyhow::Result<StatusResponse> {
         )
         .collect::<Vec<_>>();
 
-    // queue_depth requires access to the channel — see note below
     Ok(StatusResponse {
-        queue_depth: 0, // placeholder for now
+        queue_depth,
         matched,
         unmatched,
     })

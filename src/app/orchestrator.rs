@@ -143,7 +143,7 @@ impl Daemon {
     }
 
     fn status(&mut self, reply: std::sync::mpsc::SyncSender<StatusResponse>) {
-        let response = match persistence::query_status() {
+        let response = match persistence::query_status(self.sender.len()) {
             Ok(r) => r,
             Err(e) => {
                 tracing::error!(error = %e, "failed to query status");
