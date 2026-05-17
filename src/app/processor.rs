@@ -93,14 +93,21 @@ pub fn handle_inss_guide(path: PathBuf, text: &str, settings: &Settings) {
         parsed.reference_period.month, parsed.reference_period.year
     );
 
-    if persistence::guide_exists(&parsed) {
-        debug!(
-            reference_num = %parsed.reference_num,
-            contributor = %parsed.contributor_num,
-            period = %period,
-            "guide already exists"
-        );
-        return;
+    match persistence::guide_exists(&parsed) {
+        Ok(true) => {
+            debug!(
+                reference_num = %parsed.reference_num,
+                contributor = %parsed.contributor_num,
+                period = %period,
+                "guide already exists"
+            );
+            return;
+        }
+        Ok(false) => {}
+        Err(e) => {
+            error!(error = %e, "database error checking guide existence");
+            return;
+        }
     }
 
     let guide: InssGuide = (parsed, path).into();
@@ -136,9 +143,16 @@ pub fn handle_payment_receipt(path: PathBuf, text: &str, settings: &Settings) {
         }
     };
 
-    if persistence::receipt_exists(&parsed) {
-        debug!("resource already exists");
-        return;
+    match persistence::receipt_exists(&parsed) {
+        Ok(true) => {
+            debug!("resource already exists");
+            return;
+        }
+        Ok(false) => {}
+        Err(e) => {
+            error!(error = %e, "database error checking receipt existence");
+            return;
+        }
     }
 
     let receipt: PaymentReceipt = (parsed, path).into();
@@ -167,7 +181,15 @@ fn try_match_guide(guide: &InssGuide, settings: &Settings) {
         guide.reference_period.month, guide.reference_period.year
     );
 
-    if let Some(receipt) = persistence::find_matching_receipt(guide) {
+    let matching_receipt = match persistence::find_matching_receipt(guide) {
+        Ok(r) => r,
+        Err(e) => {
+            error!(error = %e, "database error searching for matching receipt");
+            return;
+        }
+    };
+
+    if let Some(receipt) = matching_receipt {
         match fs::move_pair(&guide, &receipt, &settings.storage.output_path) {
             Ok(moved) => {
                 persist_moved_pair(&guide, &receipt, moved);
@@ -200,11 +222,15 @@ fn try_match_guide(guide: &InssGuide, settings: &Settings) {
 
 #[instrument(name = "try_match_receipt", skip(receipt, settings))]
 fn try_match_receipt(receipt: &PaymentReceipt, settings: &Settings) {
-    if let Some(guide) = persistence::find_matching_guide(receipt) {
-        info!(
-            reference_num = %receipt.reference_num,
-            "matching guide found"
-        );
+    let matching_guide = match persistence::find_matching_guide(receipt) {
+        Ok(g) => g,
+        Err(e) => {
+            error!(error = %e, "database error searching for matching guide");
+            return;
+        }
+    };
+
+    if let Some(guide) = matching_guide {
         match fs::move_pair(&guide, &receipt, &settings.storage.output_path) {
             Ok(moved) => {
                 persist_moved_pair(&guide, &receipt, moved);

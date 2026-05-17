@@ -59,11 +59,11 @@ where
 
 /// checks for another guide with the same reference number, contributor_num, and reference
 /// period(month & year)
-pub fn guide_exists(guide: &ParsedGuide) -> bool {
+pub fn guide_exists(guide: &ParsedGuide) -> anyhow::Result<bool> {
     let c = conn();
     let mut stmt = c.prepare(
         "SELECT 1 FROM documents WHERE doc_type='guide' AND reference_num=?1 AND contributor_num=?2 AND ref_month=?3 AND ref_year=?4 LIMIT 1"
-    ).unwrap();
+    )?;
 
     let exists = stmt
         .exists(params![
@@ -71,10 +71,19 @@ pub fn guide_exists(guide: &ParsedGuide) -> bool {
             guide.contributor_num,
             guide.reference_period.month,
             guide.reference_period.year
-        ])
-        .unwrap_or(false);
+        ])?;
 
-    exists
+    Ok(exists)
+}
+---
+/// checks for another receipt with the same reference number and amount
+pub fn receipt_exists(receipt: &ParsedReceipt) -> anyhow::Result<bool> {
+    let c = conn();
+    let mut stmt = c.prepare(
+        "SELECT 1 FROM documents WHERE doc_type='receipt' AND reference_num=?1 AND amount_cents=?2 LIMIT 1"
+    )?;
+
+    Ok(stmt.exists(params![receipt.reference_num, receipt.amount.cents])?)
 }
 
 pub fn store_guide(guide: &InssGuide) -> anyhow::Result<StoreOutcome> {
@@ -147,66 +156,65 @@ pub fn store_receipt(receipt: &PaymentReceipt) -> anyhow::Result<StoreOutcome> {
     })
 }
 
-pub fn find_matching_receipt(guide: &InssGuide) -> Option<PaymentReceipt> {
+pub fn find_matching_receipt(guide: &InssGuide) -> anyhow::Result<Option<PaymentReceipt>> {
     let c = conn();
     let mut stmt = c
         .prepare(
             "SELECT path, reference_num, amount_cents, payment_date
          FROM documents
          WHERE doc_type='receipt' AND reference_num=?1",
-        )
-        .unwrap();
+        )?;
 
-    let mut rows = stmt.query(params![guide.reference_num]).unwrap();
+    let mut rows = stmt.query(params![guide.reference_num])?;
 
-    while let Some(row) = rows.next().unwrap() {
-        let path: String = row.get(0).unwrap();
-        let reference_num: String = row.get(1).unwrap();
-        let amount_cents: i64 = row.get(2).unwrap();
-        let payment_date_str: String = row.get(3).unwrap();
-        let payment_date = NaiveDate::parse_from_str(&payment_date_str, "%Y-%m-%d").unwrap();
+    while let Some(row) = rows.next()? {
+        let path: String = row.get(0)?;
+        let reference_num: String = row.get(1)?;
+        let amount_cents: i64 = row.get(2)?;
+        let payment_date_str: String = row.get(3)?;
+        let payment_date = NaiveDate::parse_from_str(&payment_date_str, "%Y-%m-%d")
+            .map_err(|e| anyhow::anyhow!("invalid date in database: {}", e))?;
 
         if guide.amount.cents == amount_cents
             && matcher::within_period(guide.reference_period, payment_date)
         {
-            return Some(PaymentReceipt {
+            return Ok(Some(PaymentReceipt {
                 reference_num,
                 payment_date,
                 amount: Money {
                     cents: amount_cents,
                 },
                 path: path.into(),
-            });
+            }));
         }
     }
 
-    None
+    Ok(None)
 }
 
-pub fn find_matching_guide(receipt: &PaymentReceipt) -> Option<InssGuide> {
+pub fn find_matching_guide(receipt: &PaymentReceipt) -> anyhow::Result<Option<InssGuide>> {
     let c = conn();
     let mut stmt = c
         .prepare(
             "SELECT path, reference_num, contributor_num, ref_month, ref_year, amount_cents
          FROM documents
          WHERE doc_type='guide' AND reference_num=?1",
-        )
-        .unwrap();
+        )?;
 
-    let mut rows = stmt.query(params![receipt.reference_num]).unwrap();
+    let mut rows = stmt.query(params![receipt.reference_num])?;
 
-    while let Some(row) = rows.next().unwrap() {
-        let path: String = row.get(0).unwrap();
-        let reference_num: String = row.get(1).unwrap();
-        let contributor_num: String = row.get(2).unwrap();
-        let month: u8 = row.get::<_, i64>(3).unwrap() as u8;
-        let year: u16 = row.get::<_, i64>(4).unwrap() as u16;
-        let amount_cents: i64 = row.get::<_, i64>(5).unwrap();
+    while let Some(row) = rows.next()? {
+        let path: String = row.get(0)?;
+        let reference_num: String = row.get(1)?;
+        let contributor_num: String = row.get(2)?;
+        let month: u8 = row.get::<_, i64>(3)? as u8;
+        let year: u16 = row.get::<_, i64>(4)? as u16;
+        let amount_cents: i64 = row.get::<_, i64>(5)?;
 
         if receipt.amount.cents == amount_cents
             && matcher::within_period(ReferencePeriod { month, year }, receipt.payment_date)
         {
-            return Some(InssGuide {
+            return Ok(Some(InssGuide {
                 reference_num,
                 contributor_num,
                 reference_period: ReferencePeriod { month, year },
@@ -214,11 +222,11 @@ pub fn find_matching_guide(receipt: &PaymentReceipt) -> Option<InssGuide> {
                     cents: amount_cents,
                 },
                 path: path.into(),
-            });
+            }));
         }
     }
 
-    None
+    Ok(None)
 }
 
 pub fn mark_matched_tx(tx: &Transaction, path: &Path) -> anyhow::Result<()> {
