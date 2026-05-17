@@ -45,7 +45,7 @@ pub fn process_file(path: PathBuf, settings: &Settings) {
 
         match ocr::extract_text(&img_path) {
             Ok(ocr_text) => {
-                debug!(temp_file = %img_path.display(), chars = ocr_text.len(), "OCR extraction sucessfull");
+                debug!(temp_file = %img_path.display(), chars = ocr_text.len(), "OCR extraction successful");
                 text = ocr_text;
             }
             Err(e) => {
@@ -69,7 +69,7 @@ pub fn process_file(path: PathBuf, settings: &Settings) {
         DocumentKind::Other => {
             info!(
                     file = %path.display(),
-                    reason = "insuported_type",
+                    reason = "unsupported_type",
                     "document ignored"
             );
         }
@@ -234,7 +234,7 @@ fn try_match_receipt(receipt: &PaymentReceipt, settings: &Settings) {
         };
 
         if let Err(e) = persistence::update_path(&receipt.path, &new_path) {
-            error!( error = %e, "failed to updated receipt's path");
+            error!( error = %e, "failed to update receipt's path");
             return;
         }
     }

@@ -68,7 +68,7 @@ impl Daemon {
     /// dispatches file processing asynchronously (non-blocking)
     fn handle_event(&mut self, event: Event) -> anyhow::Result<()> {
         if !matches!(self.state, State::Running) {
-            debug!("daemon unavalible ignoring");
+            debug!("daemon unavailable ignoring");
             return Ok(());
         }
 

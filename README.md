@@ -135,6 +135,16 @@ inss-watcher ctl rescan                     # re-scan watched dirs
 - [ ] **`status` command + unmatched export** — Query the DB, return a JSON blob: queue depth, matched count, unmatched list. *(RF16, US04)* **← then this**
 - [ ] **Dry-run mode** — Flag through `Settings` to log what would happen without moving files or writing to DB. *(NF02)*
 
+### Known Issues & Bugs
+
+- [x] **Fix typos in logs and comments** — Correct `unavalible`, `sucessfull`, `insuported_type`, `resouce`, and "failed to updated".
+- [ ] **Improve matching logic** — `within_period` only checks the deadline; add a lower bound to prevent matching with very old receipts.
+- [ ] **Implement `queue_depth`** — The status command currently returns a placeholder `0` for the work queue depth.
+- [ ] **Configurable output directory** — Move the hardcoded `~/Documents/INSS` path into the `Settings` struct.
+- [ ] **Temporary directory cleanup** — The `inss_watcher` temp directory is created but never removed.
+- [ ] **Robust error handling** — Replace `unwrap()` calls in `persistence.rs` with proper error propagation to prevent daemon panics.
+- [ ] **Non-blocking work queue** — The orchestrator currently blocks when the work queue is full, which can make the daemon unresponsive to commands.
+
 ### Phase 4 — Later
 
 Only worth doing once the synchronous version is stable and tested.

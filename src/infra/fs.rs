@@ -113,7 +113,7 @@ pub fn quarantine(src: &Path, quarantine_dir: &Path) -> anyhow::Result<PathBuf> 
     move_unique(src, &dest)
 }
 
-/// computes the output directory for a resouce given its metadata
+/// computes the output directory for a resource given its metadata
 pub fn inss_output_dir(month: u8, year: u16, contributor_num: &str) -> PathBuf {
     let mut base = dirs::document_dir()
         .or_else(dirs::home_dir)
