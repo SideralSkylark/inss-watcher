@@ -47,10 +47,8 @@ pub fn pdf_to_img(path: &Path) -> anyhow::Result<PathBuf> {
         .ok_or_else(|| anyhow!("PDF has no file stem: {:?}", path))?
         .to_string_lossy();
 
-    let out_dir = std::env::temp_dir().join("inss_watcher");
-    std::fs::create_dir_all(&out_dir)?;
-
-    let output = out_dir.join(format!("{stem}.png"));
+    let temp_dir = tempfile::tempdir()?;
+    let img_base = temp_dir.path().join(&*stem);
 
     let status = Command::new("pdftoppm")
         .arg("-f").arg("1")
@@ -59,22 +57,27 @@ pub fn pdf_to_img(path: &Path) -> anyhow::Result<PathBuf> {
         .arg("-gray")
         .arg("-png")
         .arg(path)
-        .arg(out_dir.join(&*stem))
+        .arg(&img_base)
         .status()?;
 
     if !status.success() {
         bail!("pdftoppm failed for {:?}", path);
     }
 
-    if !output.exists() {
+    let generated_img = temp_dir.path().join(format!("{stem}.png"));
+    if !generated_img.exists() {
         bail!("pdftoppm did not generate image for {:?}", path);
     }
 
+    // Move it out of the temp dir before it gets deleted on drop
+    let final_dest = std::env::temp_dir().join(format!("inss_ocr_{stem}.png"));
+    std::fs::rename(&generated_img, &final_dest)?;
+
     debug!(
         "event=pdf_rendered page=1 image={:?}",
-        output
+        final_dest
     );
 
-    Ok(output)
+    Ok(final_dest)
 }
 
