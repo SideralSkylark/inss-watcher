@@ -1,8 +1,19 @@
-use std::{path::PathBuf, sync::{Arc, Mutex, mpsc::{self, Receiver, SyncSender}}};
 use anyhow::Context;
+use serde::Serialize;
+use std::{
+    path::PathBuf,
+    sync::{
+        Arc, Mutex,
+        mpsc::{self, Receiver, SyncSender},
+    },
+};
 use tracing::{debug, warn};
 
-use crate::{app::processor, config::Settings, infra::{deps, ipc, persistence, watch}};
+use crate::{
+    app::processor,
+    config::Settings,
+    infra::{deps, ipc, persistence, watch},
+};
 
 pub struct Daemon {
     state: State,
@@ -19,6 +30,22 @@ pub enum State {
     Stopped,
 }
 
+#[derive(Debug, Serialize)]
+pub struct StatusResponse {
+    pub queue_depth: usize,
+    pub matched: usize,
+    pub unmatched: Vec<UnmatchedArtifact>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct UnmatchedArtifact {
+    #[serde(rename = "type")]
+    pub kind: String,
+    pub reference_num: String,
+    pub period: String,
+    pub path: String,
+}
+
 impl Daemon {
     fn run(&mut self, rx: Receiver<Message>) -> anyhow::Result<()> {
         self.state = State::Running;
@@ -29,7 +56,7 @@ impl Daemon {
                     if self.handle_command(c)? {
                         break;
                     }
-                },
+                }
                 Message::Event(e) => self.handle_event(e)?,
             }
         }
@@ -38,7 +65,7 @@ impl Daemon {
         Ok(())
     }
 
-    /// dispatches file processing asynchronously (non-blocking) 
+    /// dispatches file processing asynchronously (non-blocking)
     fn handle_event(&mut self, event: Event) -> anyhow::Result<()> {
         if !matches!(self.state, State::Running) {
             debug!("daemon unavalible ignoring");
@@ -53,21 +80,30 @@ impl Daemon {
 
     fn handle_command(&mut self, command: Command) -> anyhow::Result<bool> {
         match command {
-            Command::Stop => { 
+            Command::Stop => {
                 self.state = State::Stopping;
                 return Ok(true);
-            },
-            Command::Rescan => { self.rescan(); },
-            Command::Pause => { self.pause(); },
-            Command::Resume => { self.resume(); },
+            }
+            Command::Rescan => {
+                self.rescan();
+            }
+            Command::Pause => {
+                self.pause();
+            }
+            Command::Resume => {
+                self.resume();
+            }
+            Command::Status(reply) => {
+                self.status(reply);
+            }
         }
 
         Ok(false)
     }
 
     fn rescan(&mut self) {
-        use walkdir::WalkDir;
         use tracing::info;
+        use walkdir::WalkDir;
 
         info!("rescanning watched directories");
 
@@ -89,7 +125,7 @@ impl Daemon {
                     warn!(file = %path.display(), "work queue full or closed during rescan");
                 }
             }
-        }    
+        }
     }
 
     fn pause(&mut self) {
@@ -105,6 +141,19 @@ impl Daemon {
         info!("daemon resumed");
         self.state = State::Running;
     }
+
+    fn status(&mut self, reply: std::sync::mpsc::SyncSender<StatusResponse>) {
+        let response = match persistence::query_status() {
+            Ok(r) => r,
+            Err(e) => {
+                tracing::error!(error = %e, "failed to query status");
+                return;
+            }
+        };
+        if reply.send(response).is_err() {
+            tracing::warn!("status reply channel closed before send");
+        }
+    }
 }
 
 pub enum Message {
@@ -117,10 +166,11 @@ pub enum Command {
     Rescan,
     Pause,
     Resume,
+    Status(std::sync::mpsc::SyncSender<StatusResponse>),
 }
 
 pub struct Event {
-    pub path: PathBuf 
+    pub path: PathBuf,
 }
 
 pub fn start() -> anyhow::Result<()> {
@@ -129,8 +179,7 @@ pub fn start() -> anyhow::Result<()> {
     let settings = Settings::load()?;
 
     if let Some(parent) = settings.db.path.parent() {
-        std::fs::create_dir_all(parent)
-            .context("failed to create data directory")?;
+        std::fs::create_dir_all(parent).context("failed to create data directory")?;
     }
 
     let num_workers = settings.processing.worker_threads;
@@ -166,21 +215,14 @@ pub fn start() -> anyhow::Result<()> {
         sender: work_tx,
     };
 
-    persistence::init(&db_path)
-        .context("database initialization failed")?;
+    persistence::init(&db_path).context("database initialization failed")?;
     debug!("database initialized");
 
-    watch::start(
-        dirs_to_watch,
-        &processing,
-        tx.clone(),
-    )?;
+    watch::start(dirs_to_watch, &processing, tx.clone())?;
 
     let tx_signal = tx.clone();
     ctrlc::set_handler(move || {
         let _ = tx_signal.send(Message::Command(Command::Stop));
     })?;
-
     daemon.run(rx)
 }
-

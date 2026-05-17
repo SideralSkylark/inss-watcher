@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 use tracing::{debug, error, info, instrument, warn};
 
-use crate::config::{Settings};
+use crate::config::Settings;
 use crate::domain::classify::DocumentKind;
 use crate::domain::guide::{InssGuide, ParsedGuide};
 use crate::domain::receipt::{self, ParsedReceipt, PaymentReceipt};
@@ -47,7 +47,7 @@ pub fn process_file(path: PathBuf, settings: &Settings) {
             Ok(ocr_text) => {
                 debug!(temp_file = %img_path.display(), chars = ocr_text.len(), "OCR extraction sucessfull");
                 text = ocr_text;
-            },
+            }
             Err(e) => {
                 error!(stage = "OCR", temp_file = %img_path.display(), error = %e, "OCR extraction failed");
                 return;
@@ -68,10 +68,10 @@ pub fn process_file(path: PathBuf, settings: &Settings) {
         DocumentKind::PaymentReceipt => handle_payment_receipt(path, &text, settings),
         DocumentKind::Other => {
             info!(
-                file = %path.display(),
-                reason = "insuported_type",
-                "document ignored"
-        );
+                    file = %path.display(),
+                    reason = "insuported_type",
+                    "document ignored"
+            );
         }
     }
 }
@@ -85,10 +85,13 @@ pub fn handle_inss_guide(path: PathBuf, text: &str, settings: &Settings) {
         Err(e) => {
             warn!(error = %e, "parsing failed");
             return;
-        },
+        }
     };
 
-    let period = format!("{}/{}", parsed.reference_period.month, parsed.reference_period.year);
+    let period = format!(
+        "{}/{}",
+        parsed.reference_period.month, parsed.reference_period.year
+    );
 
     if persistence::guide_exists(&parsed) {
         debug!(
@@ -101,13 +104,13 @@ pub fn handle_inss_guide(path: PathBuf, text: &str, settings: &Settings) {
     }
 
     let guide: InssGuide = (parsed, path).into();
-    
+
     let outcome = match persistence::store_guide(&guide) {
         Ok(o) => o,
         Err(e) => {
             error!(error = %e, "failure storing guide");
             return;
-        },
+        }
     };
 
     if matches!(outcome, StoreOutcome::Inserted) {
@@ -130,7 +133,7 @@ pub fn handle_payment_receipt(path: PathBuf, text: &str, settings: &Settings) {
         Err(e) => {
             warn!(error = %e, "parsing failed");
             return;
-        },
+        }
     };
 
     if persistence::receipt_exists(&parsed) {
@@ -145,21 +148,24 @@ pub fn handle_payment_receipt(path: PathBuf, text: &str, settings: &Settings) {
         Err(e) => {
             error!(error = %e, "failed storing receipt");
             return;
-        },
+        }
     };
 
     if matches!(outcome, StoreOutcome::Inserted) {
         info!(
             reference_num = %receipt.reference_num,
             "receipt stored"
-        );        
+        );
         try_match_receipt(&receipt, settings);
     }
 }
 
 #[instrument(name = "try_match_guide", skip(guide, settings))]
 fn try_match_guide(guide: &InssGuide, settings: &Settings) {
-    let period = format!("{}/{}", guide.reference_period.month, guide.reference_period.year);
+    let period = format!(
+        "{}/{}",
+        guide.reference_period.month, guide.reference_period.year
+    );
 
     if let Some(receipt) = persistence::find_matching_receipt(guide) {
         info!(
@@ -171,7 +177,7 @@ fn try_match_guide(guide: &InssGuide, settings: &Settings) {
         match fs::move_pair(&guide, &receipt) {
             Ok(moved) => {
                 persist_moved_pair(&guide, &receipt, moved);
-            } 
+            }
             Err(e) => {
                 error!(error = %e, "failed to move pair");
             }
@@ -201,7 +207,6 @@ fn try_match_guide(guide: &InssGuide, settings: &Settings) {
 #[instrument(name = "try_match_receipt", skip(receipt, settings))]
 fn try_match_receipt(receipt: &PaymentReceipt, settings: &Settings) {
     if let Some(guide) = persistence::find_matching_guide(receipt) {
-
         info!(
             reference_num = %receipt.reference_num,
             "matching guide found"
@@ -209,7 +214,7 @@ fn try_match_receipt(receipt: &PaymentReceipt, settings: &Settings) {
         match fs::move_pair(&guide, &receipt) {
             Ok(moved) => {
                 persist_moved_pair(&guide, &receipt, moved);
-            } 
+            }
             Err(e) => {
                 error!(error = %e, "failed to move pair");
             }
@@ -248,6 +253,8 @@ fn persist_moved_pair(guide: &InssGuide, receipt: &PaymentReceipt, moved: MovedP
     if let Err(e) = persistence::transaction(|tx| {
         persistence::update_path_tx(tx, &guide.path, &moved.guide_path)?;
         persistence::update_path_tx(tx, &receipt.path, &moved.receipt_path)?;
+        persistence::mark_matched_tx(tx, &moved.guide_path)?;
+        persistence::mark_matched_tx(tx, &moved.receipt_path)?;
         Ok(())
     }) {
         error!(error = %e, "transaction failed");
