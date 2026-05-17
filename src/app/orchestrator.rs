@@ -4,6 +4,7 @@ use std::{
     path::PathBuf,
     sync::{
         Arc, Mutex,
+        atomic::{AtomicUsize, Ordering},
         mpsc::{self, Receiver, SyncSender},
     },
 };
@@ -20,6 +21,7 @@ pub struct Daemon {
     #[allow(dead_code)]
     settings: Settings,
     sender: SyncSender<PathBuf>,
+    queue_depth: Arc<AtomicUsize>,
 }
 
 pub enum State {
@@ -81,6 +83,8 @@ impl Daemon {
                     warn!("work queue closed unexpectedly");
                 }
             }
+        } else {
+            self.queue_depth.fetch_add(1, Ordering::SeqCst);
         }
         Ok(())
     }
@@ -128,7 +132,9 @@ impl Daemon {
 
             for entry in pdfs {
                 let path = entry.into_path();
-                if self.sender.try_send(path.clone()).is_err() {
+                if self.sender.try_send(path.clone()).is_ok() {
+                    self.queue_depth.fetch_add(1, Ordering::SeqCst);
+                } else {
                     warn!(file = %path.display(), "work queue full or closed during rescan");
                 }
             }
@@ -150,7 +156,7 @@ impl Daemon {
     }
 
     fn status(&mut self, reply: std::sync::mpsc::SyncSender<StatusResponse>) {
-        let response = match persistence::query_status(self.sender.len()) {
+        let response = match persistence::query_status(self.queue_depth.load(Ordering::SeqCst)) {
             Ok(r) => r,
             Err(e) => {
                 tracing::error!(error = %e, "failed to query status");
@@ -195,11 +201,13 @@ pub fn start() -> anyhow::Result<()> {
     let db_path = settings.db.path.clone();
 
     let (work_tx, work_rx) = mpsc::sync_channel::<PathBuf>(64);
+    let queue_depth = Arc::new(AtomicUsize::new(0));
 
     let shared_rx = Arc::new(Mutex::new(work_rx));
     for _ in 0..num_workers {
         let rx = Arc::clone(&shared_rx);
         let s = settings.clone();
+        let qd = Arc::clone(&queue_depth);
         std::thread::spawn(move || {
             loop {
                 let path = match rx.lock().unwrap().recv() {
@@ -208,6 +216,7 @@ pub fn start() -> anyhow::Result<()> {
                 };
 
                 processor::process_file(path, &s);
+                qd.fetch_sub(1, Ordering::SeqCst);
             }
         });
     }
@@ -220,6 +229,7 @@ pub fn start() -> anyhow::Result<()> {
         state: State::Starting,
         settings,
         sender: work_tx,
+        queue_depth,
     };
 
     persistence::init(&db_path).context("database initialization failed")?;

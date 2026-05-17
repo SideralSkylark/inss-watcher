@@ -75,7 +75,7 @@ pub fn guide_exists(guide: &ParsedGuide) -> anyhow::Result<bool> {
 
     Ok(exists)
 }
----
+
 /// checks for another receipt with the same reference number and amount
 pub fn receipt_exists(receipt: &ParsedReceipt) -> anyhow::Result<bool> {
     let c = conn();
@@ -113,17 +113,6 @@ pub fn store_guide(guide: &InssGuide) -> anyhow::Result<StoreOutcome> {
     } else {
         StoreOutcome::Inserted
     })
-}
-
-/// checks for another receipt with the same reference number and amount
-pub fn receipt_exists(receipt: &ParsedReceipt) -> bool {
-    let c = conn();
-    let mut stmt = c.prepare(
-        "SELECT 1 FROM documents WHERE doc_type='receipt' AND reference_num=?1 AND amount_cents=?2 LIMIT 1"
-    ).unwrap();
-
-    stmt.exists(params![receipt.reference_num, receipt.amount.cents])
-        .unwrap_or(false)
 }
 
 pub fn store_receipt(receipt: &PaymentReceipt) -> anyhow::Result<StoreOutcome> {
