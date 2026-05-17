@@ -138,7 +138,7 @@ inss-watcher ctl rescan                     # re-scan watched dirs
 ### Known Issues & Bugs
 
 - [x] **Fix typos in logs and comments** — Correct `unavalible`, `sucessfull`, `insuported_type`, `resouce`, and "failed to updated".
-- [ ] **Improve matching logic** — `within_period` only checks the deadline; add a lower bound to prevent matching with very old receipts.
+- [x] **Improve matching logic** — `within_period` only checks the deadline; add a lower bound to prevent matching with very old receipts.
 - [ ] **Implement `queue_depth`** — The status command currently returns a placeholder `0` for the work queue depth.
 - [ ] **Configurable output directory** — Move the hardcoded `~/Documents/INSS` path into the `Settings` struct.
 - [ ] **Temporary directory cleanup** — The `inss_watcher` temp directory is created but never removed.

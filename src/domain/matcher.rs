@@ -10,9 +10,10 @@ pub fn match_docs(guide: &ParsedGuide, receipt: &ParsedReceipt) -> bool {
 }
 
 pub fn within_period(reference_period: ReferencePeriod, payment_date: NaiveDate) -> bool {
+    let lower_bound = NaiveDate::from_ymd_opt(reference_period.year as i32, reference_period.month as u32, 1).expect("valid start date");
     let deadline = payment_deadline(reference_period);
 
-    payment_date <= deadline
+    payment_date >= lower_bound && payment_date <= deadline
 }
 
 fn payment_deadline(reference_period: ReferencePeriod) -> NaiveDate {
