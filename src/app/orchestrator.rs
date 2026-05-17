@@ -72,8 +72,15 @@ impl Daemon {
             return Ok(());
         }
 
-        if let Err(e) = self.sender.send(event.path) {
-            warn!(error=%e, "work queue closed unexpectedly");
+        if let Err(e) = self.sender.try_send(event.path) {
+            match e {
+                mpsc::TrySendError::Full(p) => {
+                    warn!(file = %p.display(), "work queue full, skipping file. use 'rescan' to process it later");
+                }
+                mpsc::TrySendError::Disconnected(_) => {
+                    warn!("work queue closed unexpectedly");
+                }
+            }
         }
         Ok(())
     }

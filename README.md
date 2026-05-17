@@ -143,7 +143,7 @@ inss-watcher ctl rescan                     # re-scan watched dirs
 - [x] **Configurable output directory** — Move the hardcoded `~/Documents/INSS` path into the `Settings` struct.
 - [x] **Temporary directory cleanup** — The `inss_watcher` temp directory is created but never removed.
 - [x] **Robust error handling** — Replace `unwrap()` calls in `persistence.rs` with proper error propagation to prevent daemon panics.
-- [ ] **Non-blocking work queue** — The orchestrator currently blocks when the work queue is full, which can make the daemon unresponsive to commands.
+- [x] **Non-blocking work queue** — The orchestrator currently blocks when the work queue is full, which can make the daemon unresponsive to commands.
 
 ### Phase 4 — Later
 
