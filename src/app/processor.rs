@@ -76,6 +76,114 @@ pub fn process_file(path: PathBuf, settings: &Settings) {
     }
 }
 
+pub fn dry_run(path: PathBuf) -> anyhow::Result<()> {
+    let settings = Settings::load()?;
+    
+    if path.is_file() {
+        dry_run_file(path, &settings);
+    } else if path.is_dir() {
+        for entry in walkdir::WalkDir::new(path)
+            .follow_links(false)
+            .into_iter()
+            .filter_map(|e| e.ok())
+            .filter(|e| {
+                e.path()
+                    .extension()
+                    .map(|x| x.eq_ignore_ascii_case("pdf"))
+                    .unwrap_or(false)
+            })
+        {
+            dry_run_file(entry.into_path(), &settings);
+        }
+    } else {
+        anyhow::bail!("path does not exist: {}", path.display());
+    }
+
+    Ok(())
+}
+
+fn dry_run_file(path: PathBuf, _settings: &Settings) {
+    info!(file = %path.display(), "dry run processing");
+
+    if !pdf::is_candidate(&path) {
+        warn!(file = %path.display(), "not a candidate PDF");
+        return;
+    }
+
+    let mut text = match pdf::extract_text(&path) {
+        Ok(t) => t,
+        Err(e) => {
+            error!(file = %path.display(), stage = "pdf_extract", error = %e, "failed to extract text from PDF");
+            return;
+        }
+    };
+
+    if text.trim().is_empty() {
+        debug!(file = %path.display(), reason = "empty_pdf", "attempting OCR fallback");
+
+        let img_path = match pdf::pdf_to_img(&path) {
+            Ok(p) => p,
+            Err(e) => {
+                error!(file = %path.display(), stage = "pdf_to_image", error = %e, "failed to render PDF to image");
+                return;
+            }
+        };
+
+        match ocr::extract_text(&img_path) {
+            Ok(ocr_text) => {
+                text = ocr_text;
+            }
+            Err(e) => {
+                error!(file = %path.display(), stage = "OCR", error = %e, "OCR extraction failed");
+                return;
+            }
+        };
+
+        if let Err(e) = std::fs::remove_file(&img_path) {
+            warn!(temp_file = %img_path.display(), error = %e, "failed to remove temporary file");
+        }
+    }
+
+    let kind = classify::classify_doc(&text);
+    info!(file = %path.display(), doc_type = ?kind, "classification complete");
+
+    match kind {
+        DocumentKind::InssGuide => {
+            match guide::parse_guide(&text) {
+                Ok(parsed) => {
+                    info!(
+                        file = %path.display(),
+                        reference_num = %parsed.reference_num,
+                        contributor = %parsed.contributor_num,
+                        period = format!("{}/{}", parsed.reference_period.month, parsed.reference_period.year),
+                        "parsed guide successfully"
+                    );
+                }
+                Err(e) => {
+                    warn!(file = %path.display(), error = %e, "failed to parse guide");
+                }
+            }
+        }
+        DocumentKind::PaymentReceipt => {
+            match receipt::parse_receipt(&text) {
+                Ok(parsed) => {
+                    info!(
+                        file = %path.display(),
+                        reference_num = %parsed.reference_num,
+                        "parsed receipt successfully"
+                    );
+                }
+                Err(e) => {
+                    warn!(file = %path.display(), error = %e, "failed to parse receipt");
+                }
+            }
+        }
+        DocumentKind::Other => {
+            info!(file = %path.display(), "document ignored (type: Other)");
+        }
+    }
+}
+
 #[instrument(skip(path, text, settings))]
 pub fn handle_inss_guide(path: PathBuf, text: &str, settings: &Settings) {
     debug!("starting guide processing");

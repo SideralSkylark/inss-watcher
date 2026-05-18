@@ -13,6 +13,10 @@ struct Cli {
 #[derive(Subcommand)]
 enum Cmd {
     Start,
+    DryRun {
+        #[arg(short, long)]
+        path: std::path::PathBuf,
+    },
     Ctl {
         #[command(subcommand)]
         action: CtlAction,
@@ -40,7 +44,11 @@ fn main() -> anyhow::Result<()> {
             );
 
             orchestrator::start()?;
-        },
+        }
+        Cmd::DryRun { path } => {
+            let _log_guard = logging::init()?;
+            inss_watcher::app::processor::dry_run(path)?;
+        }
         Cmd::Ctl { action } => {
             let command = match action {
                 CtlAction::Stop => "stop",
