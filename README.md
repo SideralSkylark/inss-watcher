@@ -133,8 +133,8 @@ inss-watcher ctl rescan                     # re-scan watched dirs
 - [x] **Full `clap` CLI** — Subcommands: `start`, `ctl stop`, `ctl rescan`, `ctl status`. One binary instead of two. *(RF15, RF17, US03)*
 - [x] **Startup dependency checks** — Check for `pdftoppm` and `tesseract` on startup, fail loudly if missing. Add JSON log mode for production. *(NF06, RF14)* **← do this next**
 - [x] **`status` command + unmatched export** — Query the DB, return a JSON blob: queue depth, matched count, unmatched list. *(RF16, US04)* **← then this**
-- [ ] **Dry-run mode** — Flag through `Settings` to log what would happen without moving files or writing to DB. *(NF02)*
-- [ ] update config when something is missing
+- [x] **Dry-run mode** — Flag through `Settings` to log what would happen without moving files or writing to DB. *(NF02)*
+- [ ] update config when something is missing (sanity check config.toml on start if something is missing add it with the default config)
 
 ### Phase 4 — Later
 
