@@ -1,7 +1,8 @@
 use clap::{Parser, Subcommand};
-use tracing::{info};
-use inss_watcher::infra::logging;
 use inss_watcher::app::orchestrator::{self};
+use inss_watcher::config::Settings;
+use inss_watcher::infra::logging;
+use tracing::info;
 
 #[derive(Parser)]
 #[command(name = "inss-watcher", version, about)]
@@ -35,18 +36,21 @@ enum CtlAction {
 fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
 
+    let settings = Settings::load()?;
+    settings.esure_dirs()?;
+
     match cli.command {
         Cmd::Start => {
-            let _log_guard = logging::init()?;
+            let _log_guard = logging::init(&settings.logs.output_path)?;
             info!(
                 version = env!("CARGO_PKG_VERSION"),
                 "INSS Watcher daemon started"
             );
 
-            orchestrator::start()?;
+            orchestrator::start(settings)?;
         }
         Cmd::DryRun { path } => {
-            let _log_guard = logging::init()?;
+            let _log_guard = logging::init(&settings.logs.output_path)?;
             inss_watcher::app::processor::dry_run(path)?;
         }
         Cmd::Ctl { action } => {
@@ -66,37 +70,37 @@ fn main() -> anyhow::Result<()> {
 }
 
 fn run_ctl(command: &str) -> anyhow::Result<()> {
+    use serde::Serialize;
     use std::{
         io::{BufRead, BufReader, Write},
         os::unix::net::UnixStream,
         path::PathBuf,
     };
-    use serde::Serialize;
- 
+
     #[derive(Serialize)]
     struct IpcRequest<'a> {
         command: &'a str,
     }
- 
+
     let socket_path = dirs::data_local_dir()
         .unwrap_or_else(|| PathBuf::from("."))
         .join("inss-watcher/inss-watcher.sock");
- 
+
     let mut stream = UnixStream::connect(&socket_path).map_err(|e| {
         anyhow::anyhow!(
             "could not connect to daemon at {} ({e}). Is it running?",
             socket_path.display()
         )
     })?;
- 
+
     let request = serde_json::to_string(&IpcRequest { command })?;
     writeln!(stream, "{request}")?;
     stream.flush()?;
- 
+
     let reader = BufReader::new(stream);
     for line in reader.lines() {
         println!("{}", line?);
     }
- 
+
     Ok(())
 }

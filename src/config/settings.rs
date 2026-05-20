@@ -11,6 +11,7 @@ pub struct Settings {
     pub daemon: DaemonSettings,
     pub quarantine: QuarantineSettings,
     pub storage: StorageSettings,
+    pub logs: LogsSettings,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -47,13 +48,14 @@ pub struct QuarantineSettings {
 
 impl Default for Settings {
     fn default() -> Self {
-        Self { 
+        Self {
             watcher: WatcherSettings::default(),
             db: DatabaseSettings::default(),
             processing: ProcessingSettings::default(),
             daemon: DaemonSettings::default(),
             quarantine: QuarantineSettings::default(),
             storage: StorageSettings::default(),
+            logs: LogsSettings::default(),
         }
     }
 }
@@ -64,13 +66,28 @@ pub struct StorageSettings {
     pub output_path: PathBuf,
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(default)]
+pub struct LogsSettings {
+    pub output_path: PathBuf,
+}
+
+impl Default for LogsSettings {
+    fn default() -> Self {
+        let output_path = dirs::data_local_dir()
+            .unwrap_or_else(|| PathBuf::from("."))
+            .join("logs");
+        Self { output_path }
+    }
+}
+
 impl Default for StorageSettings {
     fn default() -> Self {
-        let path = dirs::document_dir()
+        let output_path = dirs::document_dir()
             .or_else(dirs::home_dir)
             .unwrap_or_else(|| PathBuf::from("."))
             .join("INSS");
-        Self { output_path: path }
+        Self { output_path }
     }
 }
 
@@ -91,8 +108,8 @@ impl Settings {
         let content = fs::read_to_string(&config_path)
             .map_err(|e| anyhow::anyhow!("failed to read config {:?}: {}", config_path, e))?;
 
-        let settings: Settings = toml::from_str(&content)
-            .map_err(|e| anyhow::anyhow!("invalid config file: {}", e))?;
+        let settings: Settings =
+            toml::from_str(&content).map_err(|e| anyhow::anyhow!("invalid config file: {}", e))?;
 
         Ok(settings)
     }
@@ -103,6 +120,22 @@ impl Settings {
             .unwrap_or_else(|| PathBuf::from("."))
             .join("inss-watcher/config.toml")
     }
+
+    pub fn esure_dirs(&self) -> anyhow::Result<()> {
+        std::fs::create_dir_all(&self.logs.output_path)?;
+        std::fs::create_dir_all(&self.storage.output_path)?;
+        std::fs::create_dir_all(&self.quarantine.quarantine_path)?;
+
+        if let Some(parent) = self.db.path.parent() {
+            std::fs::create_dir_all(parent)?;
+        }
+
+        if let Some(parent) = self.daemon.socket_path.parent() {
+            std::fs::create_dir_all(parent)?;
+        }
+
+        Ok(())
+    }
 }
 
 impl Default for WatcherSettings {
@@ -111,7 +144,9 @@ impl Default for WatcherSettings {
             .or_else(dirs::home_dir)
             .unwrap_or_else(|| PathBuf::from("."));
 
-        Self { dirs_to_watch: vec![default_dir] }
+        Self {
+            dirs_to_watch: vec![default_dir],
+        }
     }
 }
 
@@ -120,14 +155,14 @@ impl Default for DatabaseSettings {
         let path = dirs::data_local_dir()
             .unwrap_or_else(|| PathBuf::from("."))
             .join("inss-watcher/inss.db");
-        Self { path: path }
+        Self { path }
     }
 }
 
 impl Default for ProcessingSettings {
     fn default() -> Self {
-        Self { 
-            stable_checks: 6, 
+        Self {
+            stable_checks: 6,
             stable_delay_ms: 400,
             worker_threads: 4,
         }
@@ -136,20 +171,19 @@ impl Default for ProcessingSettings {
 
 impl Default for DaemonSettings {
     fn default() -> Self {
-        let path = dirs::data_local_dir()
+        let socket_path = dirs::data_local_dir()
             .unwrap_or_else(|| PathBuf::from("."))
             .join("inss-watcher/inss-watcher.sock");
-        Self { socket_path: path }
+        Self { socket_path }
     }
 }
 
 impl Default for QuarantineSettings {
     fn default() -> Self {
-        let path = dirs::document_dir()
+        let quarantine_path = dirs::document_dir()
             .or_else(dirs::home_dir)
             .unwrap_or_else(|| PathBuf::from("."))
             .join("INSS/quarantine");
-        Self { quarantine_path: path }
+        Self { quarantine_path }
     }
 }
-

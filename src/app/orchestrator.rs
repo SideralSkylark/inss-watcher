@@ -186,10 +186,8 @@ pub struct Event {
     pub path: PathBuf,
 }
 
-pub fn start() -> anyhow::Result<()> {
+pub fn start(settings: Settings) -> anyhow::Result<()> {
     deps::check()?;
-
-    let settings = Settings::load()?;
 
     if let Some(parent) = settings.db.path.parent() {
         std::fs::create_dir_all(parent).context("failed to create data directory")?;
@@ -243,3 +241,4 @@ pub fn start() -> anyhow::Result<()> {
     })?;
     daemon.run(rx)
 }
+
