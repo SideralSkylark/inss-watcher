@@ -30,7 +30,7 @@ pub fn init(out_dir: &Path) -> anyhow::Result<WorkerGuard> {
         )
         .init();
 
-    tracing::info!("Logging system started");
+    tracing::info!("Logging system started, output: {}", out_dir.display());
 
     Ok(guard)
 }

@@ -76,7 +76,7 @@ impl Default for LogsSettings {
     fn default() -> Self {
         let output_path = dirs::data_local_dir()
             .unwrap_or_else(|| PathBuf::from("."))
-            .join("logs");
+            .join("inss-watcher/logs");
         Self { output_path }
     }
 }
