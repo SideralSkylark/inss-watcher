@@ -37,6 +37,7 @@ fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
 
     let settings = Settings::load()?;
+    settings.validate()?;
     settings.esure_dirs()?;
 
     match cli.command {

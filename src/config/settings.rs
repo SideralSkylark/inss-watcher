@@ -136,6 +136,51 @@ impl Settings {
 
         Ok(())
     }
+
+    pub fn validate(&self) -> anyhow::Result<()> {
+        if self.processing.worker_threads == 0 {
+            anyhow::bail!("no worker thread config");
+        }
+        if self.processing.stable_delay_ms == 0 {
+            anyhow::bail!("no stable delay config");
+        }
+        if self.processing.stable_checks == 0 {
+            anyhow::bail!("no stable check config");
+        }
+        if self.watcher.dirs_to_watch.is_empty() {
+            anyhow::bail!("no dirs to watch");
+        }
+        if !self.quarantine.quarantine_path.as_path().is_absolute()
+            || self
+                .quarantine
+                .quarantine_path
+                .as_path()
+                .as_os_str()
+                .is_empty()
+        {
+            anyhow::bail!("not a valid quarantine path");
+        }
+        if !self.storage.output_path.as_path().is_absolute()
+            || self.storage.output_path.as_path().as_os_str().is_empty()
+        {
+            anyhow::bail!("not a valid storage path");
+        }
+        if !self.daemon.socket_path.as_path().is_absolute()
+            || self.daemon.socket_path.as_path().as_os_str().is_empty()
+        {
+            anyhow::bail!("not a valid socket path");
+        }
+        if !self.logs.output_path.as_path().is_absolute()
+            || self.logs.output_path.as_path().as_os_str().is_empty()
+        {
+            anyhow::bail!("not a valid log output path");
+        }
+        if !self.db.path.as_path().is_absolute() || self.db.path.as_path().as_os_str().is_empty() {
+            anyhow::bail!("not a valid db path");
+        }
+
+        Ok(())
+    }
 }
 
 impl Default for WatcherSettings {
