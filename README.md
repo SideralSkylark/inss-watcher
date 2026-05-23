@@ -100,3 +100,9 @@ inss-watcher ctl rescan                     # re-scan watched dirs
 > ```bash
 > loginctl enable-linger $USER
 > ```
+
+---
+
+## Future improvements
+- [ ] Limit OCR worker threads for low-resource systems
+- [ ] loosen matching heuristics (currently too strict, which leads to false negatives)
