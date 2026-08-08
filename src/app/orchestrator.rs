@@ -32,14 +32,14 @@ pub enum State {
     Stopped,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, serde::Deserialize)]
 pub struct StatusResponse {
     pub queue_depth: usize,
     pub matched: usize,
     pub unmatched: Vec<UnmatchedArtifact>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, serde::Deserialize)]
 pub struct UnmatchedArtifact {
     #[serde(rename = "type")]
     pub kind: String,
