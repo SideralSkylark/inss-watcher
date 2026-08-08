@@ -209,7 +209,7 @@ impl Default for ProcessingSettings {
         Self {
             stable_checks: 6,
             stable_delay_ms: 400,
-            worker_threads: 4,
+            worker_threads: 1,
         }
     }
 }

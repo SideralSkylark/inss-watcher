@@ -1,9 +1,10 @@
 use notify::{EventKind, RecursiveMode, Watcher};
-use tracing::instrument;
-use tracing::{debug, info, warn};
+use std::collections::HashSet;
 use std::path::Path;
 use std::sync::mpsc::Sender;
-use std::{path::PathBuf, sync::mpsc, thread, time::Duration};
+use std::{path::PathBuf, sync::mpsc, thread, time::{Duration, Instant}};
+use tracing::instrument;
+use tracing::{debug, info, warn};
 
 use crate::config::settings::ProcessingSettings;
 use crate::app::orchestrator::{Event, Message};
@@ -22,6 +23,7 @@ pub fn start(paths: Vec<PathBuf>, processing: &ProcessingSettings, sender: Sende
 
     let stable_checks = processing.stable_checks;
     let stable_delay_ms = processing.stable_delay_ms;
+    let debounce_ms = 3000;
 
     thread::spawn(move || {
         let mut watcher = match notify::recommended_watcher(tx_evt) {
@@ -41,44 +43,67 @@ pub fn start(paths: Vec<PathBuf>, processing: &ProcessingSettings, sender: Sende
             info!(path = %path.display(), "watching directory");
         }
 
-        for res in rx_evt {
-            let event = match res {
-                Ok(e) => e,
-                Err(e) => {
-                    warn!(error = %e, "watcher error");
-                    continue;
-                }
-            };
+        let mut pending_paths: HashSet<PathBuf> = HashSet::new();
+        let mut last_event = Instant::now();
 
-            if !matches!(event.kind, EventKind::Create(_) | EventKind::Modify(_)) {
-                debug!(
-                    kind = ?event.kind,
-                    "event ignored"
-                );
-                continue;
-            }
+        loop {
+            let timeout = Duration::from_millis(debounce_ms);
+            let wait_result = rx_evt.recv_timeout(timeout);
 
-            for path in event.paths {
-                if is_candidate_pdf(&path) {
-                    debug!(
-                        file = %path.display(),
-                        "candidate PDF detected"
-                    );
-                    if wait_until_stable(&path, stable_checks, stable_delay_ms) {
-                        debug!(
-                            file = %path.display(),
-                            "file stable, dispatching for processing"
-                        );
-                        if sender.send(Message::Event(Event { path })).is_err() {
-                            warn!("orchestrator channel closed, dropping event");
+            match wait_result {
+                Ok(res) => {
+                    let event = match res {
+                        Ok(e) => e,
+                        Err(e) => {
+                            warn!(error = %e, "watcher error");
+                            continue;
                         }
-                    } else {
-                        warn!(
-                            file = %path.display(),
-                            "file did not stabilize"
+                    };
+
+                    if !matches!(event.kind, EventKind::Create(_) | EventKind::Modify(_)) {
+                        debug!(
+                            kind = ?event.kind,
+                            "event ignored"
                         );
+                        continue;
+                    }
+
+                    for path in event.paths {
+                        if is_candidate_pdf(&path) {
+                            debug!(
+                                file = %path.display(),
+                                "candidate PDF detected"
+                            );
+                            pending_paths.insert(path);
+                        }
+                    }
+
+                    last_event = Instant::now();
+                }
+                Err(mpsc::RecvTimeoutError::Timeout) => {
+                    if !pending_paths.is_empty()
+                        && last_event.elapsed() >= Duration::from_millis(debounce_ms)
+                    {
+                        let draining_paths: Vec<PathBuf> = pending_paths.drain().collect();
+                        for path in draining_paths {
+                            if wait_until_stable(&path, stable_checks, stable_delay_ms) {
+                                debug!(
+                                    file = %path.display(),
+                                    "file stable, dispatching for processing"
+                                );
+                                if sender.send(Message::Event(Event { path })).is_err() {
+                                    warn!("orchestrator channel closed, dropping event");
+                                }
+                            } else {
+                                warn!(
+                                    file = %path.display(),
+                                    "file did not stabilize"
+                                );
+                            }
+                        }
                     }
                 }
+                Err(mpsc::RecvTimeoutError::Disconnected) => break,
             }
         }
     });
