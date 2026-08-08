@@ -234,6 +234,7 @@ pub fn start(settings: Settings) -> anyhow::Result<()> {
     debug!("database initialized");
 
     watch::start(dirs_to_watch, &processing, tx.clone())?;
+    daemon.rescan();
 
     let tx_signal = tx.clone();
     ctrlc::set_handler(move || {

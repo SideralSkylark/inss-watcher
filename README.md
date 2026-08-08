@@ -57,23 +57,11 @@ inss-watcher ctl stop
 
 ### Running as a systemd user service (recommended)
 
-Create the service file:
+Use the example service file included in this repository:
 
 ```bash
 mkdir -p ~/.config/systemd/user
-cat > ~/.config/systemd/user/inss-watcher.service << 'EOF'
-[Unit]
-Description=INSS Watcher daemon
-After=default.target
-
-[Service]
-ExecStart=%h/.cargo/bin/inss-watcher start
-Restart=on-failure
-RestartSec=5
-
-[Install]
-WantedBy=default.target
-EOF
+cp inss-watcher.service.example ~/.config/systemd/user/inss-watcher.service
 ```
 
 Install the binary and enable the service:
@@ -83,6 +71,14 @@ cargo install --path .
 
 systemctl --user daemon-reload
 systemctl --user enable --now inss-watcher
+```
+
+If you prefer to use a release binary downloaded from GitHub Actions, update `ExecStart` in `~/.config/systemd/user/inss-watcher.service` to the actual path of that binary.
+
+To make the user service survive logout and reboot:
+
+```bash
+loginctl enable-linger $USER
 ```
 
 Day-to-day commands:
