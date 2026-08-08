@@ -35,3 +35,4 @@ lopdf = "0.40.0"
 toml = "0.8"
 thiserror = "2.0.18"
 clap = { version = "4.6.1", features = ["derive"] }
+notify-rust = "4.7.0"

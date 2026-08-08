@@ -8,7 +8,7 @@ use crate::domain::receipt::{self, ParsedReceipt, PaymentReceipt};
 use crate::domain::{classify, guide};
 use crate::infra::fs::{MovedPairPaths, quarantine};
 use crate::infra::persistence::StoreOutcome;
-use crate::infra::{fs, ocr, pdf, persistence};
+use crate::infra::{fs, notifications, ocr, pdf, persistence};
 
 #[instrument(
     name = "process_file",
@@ -50,6 +50,10 @@ pub fn process_file(path: PathBuf, settings: &Settings) {
             }
             Err(e) => {
                 error!(stage = "OCR", temp_file = %img_path.display(), error = %e, "OCR extraction failed");
+                notifications::notify_failure(
+                    "INSS Watcher OCR failure",
+                    Some(&format!("Failed to OCR {}: {}", img_path.display(), e)),
+                );
                 return;
             }
         };
@@ -214,16 +218,24 @@ pub fn handle_inss_guide(path: PathBuf, text: &str, settings: &Settings) {
         Ok(false) => {}
         Err(e) => {
             error!(error = %e, "database error checking guide existence");
+            notifications::notify_failure(
+                "INSS Watcher database failure",
+                Some(&format!("Database error checking guide existence: {}", e)),
+            );
             return;
         }
     }
 
-    let guide: InssGuide = (parsed, path).into();
+    let guide: InssGuide = (parsed.clone(), path).into();
 
     let outcome = match persistence::store_guide(&guide) {
         Ok(o) => o,
         Err(e) => {
             error!(error = %e, "failure storing guide");
+            notifications::notify_failure(
+                "INSS Watcher storage failure",
+                Some(&format!("Failed to store guide {}: {}", parsed.reference_num, e)),
+            );
             return;
         }
     };
@@ -259,16 +271,24 @@ pub fn handle_payment_receipt(path: PathBuf, text: &str, settings: &Settings) {
         Ok(false) => {}
         Err(e) => {
             error!(error = %e, "database error checking receipt existence");
+            notifications::notify_failure(
+                "INSS Watcher database failure",
+                Some(&format!("Database error checking receipt existence: {}", e)),
+            );
             return;
         }
     }
 
-    let receipt: PaymentReceipt = (parsed, path).into();
+    let receipt: PaymentReceipt = (parsed.clone(), path).into();
 
     let outcome = match persistence::store_receipt(&receipt) {
         Ok(o) => o,
         Err(e) => {
             error!(error = %e, "failed storing receipt");
+            notifications::notify_failure(
+                "INSS Watcher storage failure",
+                Some(&format!("Failed to store receipt {}: {}", parsed.reference_num, e)),
+            );
             return;
         }
     };
@@ -304,6 +324,10 @@ fn try_match_guide(guide: &InssGuide, settings: &Settings) {
             }
             Err(e) => {
                 error!(error = %e, "failed to move pair");
+                notifications::notify_failure(
+                    "INSS Watcher file move failure",
+                    Some(&format!("Failed to move matched guide and receipt: {}", e)),
+                );
             }
         }
     } else {
@@ -317,12 +341,20 @@ fn try_match_guide(guide: &InssGuide, settings: &Settings) {
             Ok(p) => p,
             Err(e) => {
                 error!(error = %e, "failed to quarantine guide");
+                notifications::notify_failure(
+                    "INSS Watcher quarantine failure",
+                    Some(&format!("Failed to quarantine guide {}: {}", guide.reference_num, e)),
+                );
                 return;
             }
         };
 
         if let Err(e) = persistence::update_path(&guide.path, &new_path) {
             error!(error = %e, "failed to update file's path");
+            notifications::notify_failure(
+                "INSS Watcher path update failure",
+                Some(&format!("Failed to update guide path {}: {}", guide.path.display(), e)),
+            );
             return;
         };
     }
@@ -345,6 +377,10 @@ fn try_match_receipt(receipt: &PaymentReceipt, settings: &Settings) {
             }
             Err(e) => {
                 error!(error = %e, "failed to move pair");
+                notifications::notify_failure(
+                    "INSS Watcher file move failure",
+                    Some(&format!("Failed to move matched guide and receipt: {}", e)),
+                );
             }
         }
     } else {
@@ -357,12 +393,20 @@ fn try_match_receipt(receipt: &PaymentReceipt, settings: &Settings) {
             Ok(p) => p,
             Err(e) => {
                 error!(error = %e, "failed to quarantine receipt");
+                notifications::notify_failure(
+                    "INSS Watcher quarantine failure",
+                    Some(&format!("Failed to quarantine receipt {}: {}", receipt.reference_num, e)),
+                );
                 return;
             }
         };
 
         if let Err(e) = persistence::update_path(&receipt.path, &new_path) {
             error!( error = %e, "failed to update receipt's path");
+            notifications::notify_failure(
+                "INSS Watcher path update failure",
+                Some(&format!("Failed to update receipt path {}: {}", receipt.path.display(), e)),
+            );
             return;
         }
     }
@@ -386,5 +430,9 @@ fn persist_moved_pair(guide: &InssGuide, receipt: &PaymentReceipt, moved: MovedP
         Ok(())
     }) {
         error!(error = %e, "transaction failed");
+        notifications::notify_failure(
+            "INSS Watcher transaction failure",
+            Some(&format!("Failed to persist matched state for {} and {}: {}", guide.path.display(), receipt.path.display(), e)),
+        );
     }
 }

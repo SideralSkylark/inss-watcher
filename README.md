@@ -73,7 +73,14 @@ systemctl --user daemon-reload
 systemctl --user enable --now inss-watcher
 ```
 
-If you prefer to use a release binary downloaded from GitHub Actions, update `ExecStart` in `~/.config/systemd/user/inss-watcher.service` to the actual path of that binary.
+If you prefer to use a release binary downloaded from GitHub Actions, update `ExecStart` in `~/.config/systemd/user/inss-watcher.service` to the absolute path of that binary.
+
+If you edit the service later, rerun:
+
+```bash
+systemctl --user daemon-reload
+systemctl --user restart inss-watcher
+```
 
 To make the user service survive logout and reboot:
 

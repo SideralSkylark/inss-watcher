@@ -14,10 +14,10 @@ If a task doesn't shrink that gap, it goes in "Explicitly Skip." Don't reconside
 
 This is the actual root cause: build cost + runtime resource cost. Nothing else matters until this is fixed.
 
-- [ ] **Cap OCR to 1 worker thread by default** (config default, override-able). This alone likely fixes most of the CPU/RAM spike.
-- [ ] **Debounce file processing.** On directory event, wait ~3-5s for more events before triggering OCR, instead of processing each file the instant it appears. Prevents burst load when multiple PDFs land at once.
-- [ ] **Set `Nice`/`IOSchedulingClass` in the systemd unit** so the daemon never competes with foreground work, regardless of what the OCR engine does internally.
-- [ ] **Set up a build pipeline (GitHub Actions) that produces release binaries on tag/push.** You should never run `cargo build --release` on the target machine again. Download the binary, done.
+- [x] **Cap OCR to 1 worker thread by default** (config default, override-able). This alone likely fixes most of the CPU/RAM spike.
+- [x] **Debounce file processing.** On directory event, wait ~3-5s for more events before triggering OCR, instead of processing each file the instant it appears. Prevents burst load when multiple PDFs land at once.
+- [x] **Set `Nice`/`IOSchedulingClass` in the systemd unit** so the daemon never competes with foreground work, regardless of what the OCR engine does internally.
+- [x] **Set up a build pipeline (GitHub Actions) that produces release binaries on tag/push.** You should never run `cargo build --release` on the target machine again. Download the binary, done.
 
 **Exit criteria:** you can watch `htop`/Activity Monitor while it processes a batch of PDFs and it doesn't register as "something is happening" on your laptop.
 
