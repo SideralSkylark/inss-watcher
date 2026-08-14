@@ -37,31 +37,47 @@ fi
 # exactly "${BIN_NAME}" with no OS/arch suffix, so match on that. If you later
 # start publishing per-platform assets (e.g. inss-watcher-linux-x86_64), add
 # an arch suffix here and to your release workflow to keep them in sync.
-# NOTE: every extraction below ends in "|| true". Without it, a failure deep
-# inside these pipelines (e.g. jq erroring on unexpected JSON) counts as the
-# whole "VAR=$(...)" assignment failing, and under `set -e` that kills the
-# script immediately -- silently, before the diagnostic check below ever runs.
-# "|| true" lets extraction fail soft so we can report *why* it's empty.
-if command -v jq >/dev/null 2>&1; then
+#
+# Extraction uses real JSON parsing (python3, then jq) rather than line-based
+# grep/sed. GitHub's asset objects nest a full "uploader" object (15+ fields)
+# between "name" and "browser_download_url", so naive text splitting is
+# fragile against real API responses even though it works on trimmed samples.
+#
+# NOTE: every extraction ends in "|| true". Without it, a failure deep inside
+# these pipelines counts as the whole "VAR=$(...)" assignment failing, and
+# under `set -e` that kills the script immediately -- silently, before the
+# diagnostic check below ever runs. "|| true" lets extraction fail soft so we
+# can report *why* it's empty instead of just vanishing.
+ASSET_URL=""
+
+if command -v python3 >/dev/null 2>&1; then
+  log "(using python3 for JSON parsing)"
+  ASSET_URL="$(printf '%s' "$RELEASE_JSON" | python3 -c '
+import json, sys
+name = sys.argv[1]
+try:
+    releases = json.load(sys.stdin)
+except Exception:
+    sys.exit(0)
+for release in releases:
+    for asset in release.get("assets", []) or []:
+        if asset.get("name") == name:
+            print(asset.get("browser_download_url", ""))
+            sys.exit(0)
+' "$BIN_NAME" 2>/tmp/inss_py_err || true)"
+  if [[ -z "$ASSET_URL" && -s /tmp/inss_py_err ]]; then
+    log "python3 extraction hit an error (trying jq next): $(cat /tmp/inss_py_err)"
+  fi
+fi
+
+if [[ -z "$ASSET_URL" ]] && command -v jq >/dev/null 2>&1; then
   log "(using jq for JSON parsing)"
   ASSET_URL="$(printf '%s' "$RELEASE_JSON" \
     | jq -r --arg name "$BIN_NAME" '[.[] | .assets[]? | select(.name == $name)][0].browser_download_url // empty' 2>/tmp/inss_jq_err \
     | head -n1 || true)"
   if [[ -z "$ASSET_URL" && -s /tmp/inss_jq_err ]]; then
-    log "jq reported an error (falling back to plain-text parsing): $(cat /tmp/inss_jq_err)"
+    log "jq reported an error: $(cat /tmp/inss_jq_err)"
   fi
-fi
-
-if [[ -z "${ASSET_URL:-}" ]]; then
-  # Fallback (also used if jq is absent, or errored above): find the JSON
-  # block for the first asset object whose "name" matches BIN_NAME, then pull
-  # the browser_download_url from that block.
-  ASSET_URL="$(printf '%s' "$RELEASE_JSON" \
-    | tr ',' '\n' \
-    | grep -A5 "\"name\": *\"${BIN_NAME}\"" \
-    | grep '"browser_download_url"' \
-    | head -n1 \
-    | sed -E 's/.*"browser_download_url": *"([^"]+)".*/\1/' || true)"
 fi
 
 if [[ -z "${ASSET_URL:-}" ]]; then
