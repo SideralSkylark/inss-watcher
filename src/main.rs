@@ -2,6 +2,7 @@ use clap::{Parser, Subcommand};
 use inss_watcher::app::orchestrator::{self, StatusResponse};
 use inss_watcher::config::Settings;
 use inss_watcher::infra::logging;
+use inss_watcher::infra::notifications;
 use rusqlite::Connection;
 use serde_json::json;
 use std::io::{BufRead, BufReader, Write};
@@ -54,7 +55,13 @@ fn main() -> anyhow::Result<()> {
                 "INSS Watcher daemon started"
             );
 
-            orchestrator::start(settings)?;
+            if let Err(e) = orchestrator::start(settings) {
+                notifications::notify_failure(
+                    "INSS Watcher daemon failed",
+                    Some(&format!("{}", e)),
+                );
+                return Err(e);
+            }
         }
         Cmd::DryRun { path } => {
             let _log_guard = logging::init(&settings.logs.output_path)?;
