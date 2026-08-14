@@ -17,24 +17,38 @@ die() { printf '\033[1;31mError:\033[0m %s\n' "$1" >&2; exit 1; }
 command -v systemctl >/dev/null 2>&1 || die "systemd not found — this script targets Linux with a user systemd instance (macOS/Windows need a different service setup)."
 command -v curl >/dev/null 2>&1 || die "curl is required."
 
-ARCH="$(uname -m)"
-case "$ARCH" in
-  x86_64) ASSET_ARCH="x86_64" ;;
-  aarch64|arm64) ASSET_ARCH="aarch64" ;;
-  *) die "Unsupported architecture: $ARCH" ;;
-esac
-
-log "Fetching latest release info for ${REPO}..."
-RELEASE_JSON="$(curl -sf "https://api.github.com/repos/${REPO}/releases/latest")" \
+log "Fetching most recent release info for ${REPO}..."
+# Note: /releases/latest deliberately excludes pre-releases, and your current
+# release(s) are marked pre-release — so we pull the release list and take
+# the first (most recent, GitHub returns them newest-first) instead.
+RELEASE_JSON="$(curl -sf "https://api.github.com/repos/${REPO}/releases")" \
   || die "Could not reach GitHub API for ${REPO}. Check the REPO variable at the top of this script."
 
-ASSET_URL="$(printf '%s' "$RELEASE_JSON" \
-  | grep -oE '"browser_download_url":\s*"[^"]*linux[^"]*'"${ASSET_ARCH}"'[^"]*"' \
-  | head -n1 \
-  | sed -E 's/.*"(https[^"]+)"/\1/')"
+if [[ "$(printf '%s' "$RELEASE_JSON" | tr -d '[:space:]')" == "[]" ]]; then
+  die "No releases found for ${REPO} at all (not even pre-releases)."
+fi
+
+# Asset name matching: your build currently publishes a single asset named
+# exactly "${BIN_NAME}" with no OS/arch suffix, so match on that. If you later
+# start publishing per-platform assets (e.g. inss-watcher-linux-x86_64), add
+# an arch suffix here and to your release workflow to keep them in sync.
+if command -v jq >/dev/null 2>&1; then
+  ASSET_URL="$(printf '%s' "$RELEASE_JSON" \
+    | jq -r --arg name "$BIN_NAME" '[.[] | .assets[]? | select(.name == $name)][0].browser_download_url // empty' \
+    | head -n1)"
+else
+  # Fallback without jq: find the JSON block for the first asset object whose
+  # "name" matches BIN_NAME, then pull the browser_download_url from that block.
+  ASSET_URL="$(printf '%s' "$RELEASE_JSON" \
+    | tr ',' '\n' \
+    | grep -A5 "\"name\": *\"${BIN_NAME}\"" \
+    | grep '"browser_download_url"' \
+    | head -n1 \
+    | sed -E 's/.*"browser_download_url": *"([^"]+)".*/\1/')"
+fi
 
 if [[ -z "$ASSET_URL" ]]; then
-  die "No matching release asset found for linux/${ASSET_ARCH}. Check your release naming convention in GitHub Actions, or set ASSET_URL manually."
+  die "No asset named '${BIN_NAME}' found on any release. Check the asset name in your GitHub Actions release step, or set ASSET_URL manually and skip this block."
 fi
 
 log "Downloading binary from: $ASSET_URL"
