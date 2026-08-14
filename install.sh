@@ -17,6 +17,11 @@ die() { printf '\033[1;31mError:\033[0m %s\n' "$1" >&2; exit 1; }
 command -v systemctl >/dev/null 2>&1 || die "systemd not found — this script targets Linux with a user systemd instance (macOS/Windows need a different service setup)."
 command -v curl >/dev/null 2>&1 || die "curl is required."
 
+# $USER isn't guaranteed to be set (some minimal shells/containers don't export
+# it), and this script runs under `set -u`, so fall back to `whoami` rather
+# than dying on an unbound variable later at the loginctl step.
+USER="${USER:-$(whoami)}"
+
 log "Fetching most recent release info for ${REPO}..."
 # Note: /releases/latest deliberately excludes pre-releases, and your current
 # release(s) are marked pre-release — so we pull the release list and take
@@ -32,22 +37,37 @@ fi
 # exactly "${BIN_NAME}" with no OS/arch suffix, so match on that. If you later
 # start publishing per-platform assets (e.g. inss-watcher-linux-x86_64), add
 # an arch suffix here and to your release workflow to keep them in sync.
+# NOTE: every extraction below ends in "|| true". Without it, a failure deep
+# inside these pipelines (e.g. jq erroring on unexpected JSON) counts as the
+# whole "VAR=$(...)" assignment failing, and under `set -e` that kills the
+# script immediately -- silently, before the diagnostic check below ever runs.
+# "|| true" lets extraction fail soft so we can report *why* it's empty.
 if command -v jq >/dev/null 2>&1; then
+  log "(using jq for JSON parsing)"
   ASSET_URL="$(printf '%s' "$RELEASE_JSON" \
-    | jq -r --arg name "$BIN_NAME" '[.[] | .assets[]? | select(.name == $name)][0].browser_download_url // empty' \
-    | head -n1)"
-else
-  # Fallback without jq: find the JSON block for the first asset object whose
-  # "name" matches BIN_NAME, then pull the browser_download_url from that block.
+    | jq -r --arg name "$BIN_NAME" '[.[] | .assets[]? | select(.name == $name)][0].browser_download_url // empty' 2>/tmp/inss_jq_err \
+    | head -n1 || true)"
+  if [[ -z "$ASSET_URL" && -s /tmp/inss_jq_err ]]; then
+    log "jq reported an error (falling back to plain-text parsing): $(cat /tmp/inss_jq_err)"
+  fi
+fi
+
+if [[ -z "${ASSET_URL:-}" ]]; then
+  # Fallback (also used if jq is absent, or errored above): find the JSON
+  # block for the first asset object whose "name" matches BIN_NAME, then pull
+  # the browser_download_url from that block.
   ASSET_URL="$(printf '%s' "$RELEASE_JSON" \
     | tr ',' '\n' \
     | grep -A5 "\"name\": *\"${BIN_NAME}\"" \
     | grep '"browser_download_url"' \
     | head -n1 \
-    | sed -E 's/.*"browser_download_url": *"([^"]+)".*/\1/')"
+    | sed -E 's/.*"browser_download_url": *"([^"]+)".*/\1/' || true)"
 fi
 
-if [[ -z "$ASSET_URL" ]]; then
+if [[ -z "${ASSET_URL:-}" ]]; then
+  log "Could not auto-extract an asset URL. Raw release JSON for debugging:"
+  printf '%s\n' "$RELEASE_JSON" | head -c 2000
+  echo
   die "No asset named '${BIN_NAME}' found on any release. Check the asset name in your GitHub Actions release step, or set ASSET_URL manually and skip this block."
 fi
 
