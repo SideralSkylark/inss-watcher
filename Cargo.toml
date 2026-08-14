@@ -16,7 +16,7 @@ path = "src/main.rs"
 [dependencies]
 notify = "8.2.0"
 pdf-extract = "0.10.0"
-rusqlite = { version = "0.38.0", features = ["chrono"] }
+rusqlite = { version = "0.38.0", features = ["chrono", "bundled"] }
 regex = "1.12.2"
 fancy-regex = "0.18.0"
 tracing = "0.1"
