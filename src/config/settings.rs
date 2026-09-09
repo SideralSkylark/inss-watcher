@@ -12,6 +12,14 @@ pub struct Settings {
     pub quarantine: QuarantineSettings,
     pub storage: StorageSettings,
     pub logs: LogsSettings,
+    pub notifications: NotificationSettings,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(default)]
+pub struct NotificationSettings {
+    pub match_notifications: bool,
+    pub failure_notifications: bool,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -56,6 +64,7 @@ impl Default for Settings {
             quarantine: QuarantineSettings::default(),
             storage: StorageSettings::default(),
             logs: LogsSettings::default(),
+            notifications: NotificationSettings::default(),
         }
     }
 }
@@ -230,5 +239,27 @@ impl Default for QuarantineSettings {
             .unwrap_or_else(|| PathBuf::from("."))
             .join("INSS/quarantine");
         Self { quarantine_path }
+    }
+}
+
+impl Default for NotificationSettings {
+    fn default() -> Self {
+        Self {
+            match_notifications: true,
+            failure_notifications: true,
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Settings;
+
+    #[test]
+    fn notification_settings_are_enabled_by_default() {
+        let settings = Settings::default();
+
+        assert!(settings.notifications.match_notifications);
+        assert!(settings.notifications.failure_notifications);
     }
 }

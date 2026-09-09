@@ -51,6 +51,7 @@ pub fn process_file(path: PathBuf, settings: &Settings) {
             Err(e) => {
                 error!(stage = "OCR", temp_file = %img_path.display(), error = %e, "OCR extraction failed");
                 notifications::notify_failure(
+                    settings,
                     "INSS Watcher OCR failure",
                     Some(&format!("Failed to OCR {}: {}", img_path.display(), e)),
                 );
@@ -219,6 +220,7 @@ pub fn handle_inss_guide(path: PathBuf, text: &str, settings: &Settings) {
         Err(e) => {
             error!(error = %e, "database error checking guide existence");
             notifications::notify_failure(
+                settings,
                 "INSS Watcher database failure",
                 Some(&format!("Database error checking guide existence: {}", e)),
             );
@@ -233,6 +235,7 @@ pub fn handle_inss_guide(path: PathBuf, text: &str, settings: &Settings) {
         Err(e) => {
             error!(error = %e, "failure storing guide");
             notifications::notify_failure(
+                settings,
                 "INSS Watcher storage failure",
                 Some(&format!("Failed to store guide {}: {}", parsed.reference_num, e)),
             );
@@ -272,6 +275,7 @@ pub fn handle_payment_receipt(path: PathBuf, text: &str, settings: &Settings) {
         Err(e) => {
             error!(error = %e, "database error checking receipt existence");
             notifications::notify_failure(
+                settings,
                 "INSS Watcher database failure",
                 Some(&format!("Database error checking receipt existence: {}", e)),
             );
@@ -286,6 +290,7 @@ pub fn handle_payment_receipt(path: PathBuf, text: &str, settings: &Settings) {
         Err(e) => {
             error!(error = %e, "failed storing receipt");
             notifications::notify_failure(
+                settings,
                 "INSS Watcher storage failure",
                 Some(&format!("Failed to store receipt {}: {}", parsed.reference_num, e)),
             );
@@ -320,11 +325,12 @@ fn try_match_guide(guide: &InssGuide, settings: &Settings) {
     if let Some(receipt) = matching_receipt {
         match fs::move_pair(&guide, &receipt, &settings.storage.output_path) {
             Ok(moved) => {
-                persist_moved_pair(&guide, &receipt, moved);
+                persist_moved_pair(&guide, &receipt, moved, settings);
             }
             Err(e) => {
                 error!(error = %e, "failed to move pair");
                 notifications::notify_failure(
+                    settings,
                     "INSS Watcher file move failure",
                     Some(&format!("Failed to move matched guide and receipt: {}", e)),
                 );
@@ -342,6 +348,7 @@ fn try_match_guide(guide: &InssGuide, settings: &Settings) {
             Err(e) => {
                 error!(error = %e, "failed to quarantine guide");
                 notifications::notify_failure(
+                    settings,
                     "INSS Watcher quarantine failure",
                     Some(&format!("Failed to quarantine guide {}: {}", guide.reference_num, e)),
                 );
@@ -352,6 +359,7 @@ fn try_match_guide(guide: &InssGuide, settings: &Settings) {
         if let Err(e) = persistence::update_path(&guide.path, &new_path) {
             error!(error = %e, "failed to update file's path");
             notifications::notify_failure(
+                settings,
                 "INSS Watcher path update failure",
                 Some(&format!("Failed to update guide path {}: {}", guide.path.display(), e)),
             );
@@ -373,11 +381,12 @@ fn try_match_receipt(receipt: &PaymentReceipt, settings: &Settings) {
     if let Some(guide) = matching_guide {
         match fs::move_pair(&guide, &receipt, &settings.storage.output_path) {
             Ok(moved) => {
-                persist_moved_pair(&guide, &receipt, moved);
+                persist_moved_pair(&guide, &receipt, moved, settings);
             }
             Err(e) => {
                 error!(error = %e, "failed to move pair");
                 notifications::notify_failure(
+                    settings,
                     "INSS Watcher file move failure",
                     Some(&format!("Failed to move matched guide and receipt: {}", e)),
                 );
@@ -394,6 +403,7 @@ fn try_match_receipt(receipt: &PaymentReceipt, settings: &Settings) {
             Err(e) => {
                 error!(error = %e, "failed to quarantine receipt");
                 notifications::notify_failure(
+                    settings,
                     "INSS Watcher quarantine failure",
                     Some(&format!("Failed to quarantine receipt {}: {}", receipt.reference_num, e)),
                 );
@@ -404,6 +414,7 @@ fn try_match_receipt(receipt: &PaymentReceipt, settings: &Settings) {
         if let Err(e) = persistence::update_path(&receipt.path, &new_path) {
             error!( error = %e, "failed to update receipt's path");
             notifications::notify_failure(
+                settings,
                 "INSS Watcher path update failure",
                 Some(&format!("Failed to update receipt path {}: {}", receipt.path.display(), e)),
             );
@@ -419,7 +430,12 @@ fn try_match_receipt(receipt: &PaymentReceipt, settings: &Settings) {
         receipt_path = %receipt.path.display()
     )
 )]
-fn persist_moved_pair(guide: &InssGuide, receipt: &PaymentReceipt, moved: MovedPairPaths) {
+fn persist_moved_pair(
+    guide: &InssGuide,
+    receipt: &PaymentReceipt,
+    moved: MovedPairPaths,
+    settings: &Settings,
+) {
     debug!("updating resources paths");
 
     if let Err(e) = persistence::transaction(|tx| {
@@ -431,8 +447,13 @@ fn persist_moved_pair(guide: &InssGuide, receipt: &PaymentReceipt, moved: MovedP
     }) {
         error!(error = %e, "transaction failed");
         notifications::notify_failure(
+            settings,
             "INSS Watcher transaction failure",
             Some(&format!("Failed to persist matched state for {} and {}: {}", guide.path.display(), receipt.path.display(), e)),
         );
+        return;
     }
+
+    let reference_period = format!("{}/{}", guide.reference_period.month, guide.reference_period.year);
+    notifications::notify_match(settings, &guide.contributor_num, &reference_period, 2);
 }

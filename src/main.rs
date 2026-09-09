@@ -55,8 +55,9 @@ fn main() -> anyhow::Result<()> {
                 "INSS Watcher daemon started"
             );
 
-            if let Err(e) = orchestrator::start(settings) {
+            if let Err(e) = orchestrator::start(settings.clone()) {
                 notifications::notify_failure(
+                    &settings,
                     "INSS Watcher daemon failed",
                     Some(&format!("{}", e)),
                 );

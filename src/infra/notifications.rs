@@ -1,10 +1,16 @@
-use notify_rust::{Notification, Hint};
+use notify_rust::{Hint, Notification};
 use std::sync::atomic::{AtomicBool, Ordering};
 
-static NOTIFIED: AtomicBool = AtomicBool::new(false);
+use crate::config::Settings;
 
-pub fn notify_failure(summary: &str, body: Option<&str>) {
-    if NOTIFIED
+static FAILURE_NOTIFIED: AtomicBool = AtomicBool::new(false);
+
+pub fn notify_failure(settings: &Settings, summary: &str, body: Option<&str>) {
+    if !settings.notifications.failure_notifications {
+        return;
+    }
+
+    if FAILURE_NOTIFIED
         .compare_exchange(false, true, Ordering::SeqCst, Ordering::SeqCst)
         .is_err()
     {
@@ -16,6 +22,24 @@ pub fn notify_failure(summary: &str, body: Option<&str>) {
     let _ = Notification::new()
         .summary(summary)
         .body(body)
+        .appname("INSS Watcher")
+        .hint(Hint::Transient(true))
+        .show();
+}
+
+pub fn notify_match(settings: &Settings, contributor: &str, reference_period: &str, docs_organized: usize) {
+    if !settings.notifications.match_notifications {
+        return;
+    }
+
+    let body = format!(
+        "Contributor: {}\nReference period: {}\n\n{} documents organized",
+        contributor, reference_period, docs_organized
+    );
+
+    let _ = Notification::new()
+        .summary("Payment matched")
+        .body(&body)
         .appname("INSS Watcher")
         .hint(Hint::Transient(true))
         .show();
