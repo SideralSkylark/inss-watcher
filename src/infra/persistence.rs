@@ -16,6 +16,24 @@ pub enum StoreOutcome {
     AlreadyExists,
 }
 
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
+pub struct DocumentRow {
+    pub id: i64,
+    pub doc_type: String,
+    pub status: String,
+    pub reference_num: String,
+    pub contributor_num: Option<String>,
+    pub ref_period: String,
+    pub path: String,
+}
+
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
+pub struct RecentMatchRow {
+    pub contributor_num: String,
+    pub ref_period: String,
+    pub reference_num: String,
+}
+
 static DB: OnceLock<Mutex<Connection>> = OnceLock::new();
 
 pub fn init(db_path: &PathBuf) -> Result<()> {
@@ -220,6 +238,140 @@ pub fn mark_matched_tx(tx: &Transaction, path: &Path) -> anyhow::Result<()> {
         "UPDATE documents SET status = 'matched' WHERE path = ?1",
         params![path.to_string_lossy()],
     )?;
+    Ok(())
+}
+
+pub fn query_documents(
+    status: Option<&str>,
+    contributor: Option<&str>,
+    period: Option<&str>,
+    limit: usize,
+) -> anyhow::Result<Vec<DocumentRow>> {
+    let c = conn();
+    let mut sql = String::from(
+        "SELECT id, doc_type, status, reference_num, contributor_num, ref_month, ref_year, path FROM documents",
+    );
+    let mut clauses = Vec::new();
+    let mut params_vec: Vec<String> = Vec::new();
+
+    if let Some(value) = status {
+        if !value.is_empty() {
+            clauses.push("status = ?".to_string());
+            params_vec.push(value.to_string());
+        }
+    }
+
+    if let Some(value) = contributor {
+        if !value.is_empty() {
+            clauses.push("contributor_num = ?".to_string());
+            params_vec.push(value.to_string());
+        }
+    }
+
+    if let Some(value) = period {
+        if !value.is_empty() {
+            if let Some((month, year)) = value.split_once('/') {
+                if let (Ok(month), Ok(year)) = (month.parse::<i64>(), year.parse::<i64>()) {
+                    clauses.push("ref_month = ? AND ref_year = ?".to_string());
+                    params_vec.push(month.to_string());
+                    params_vec.push(year.to_string());
+                }
+            }
+        }
+    }
+
+    if !clauses.is_empty() {
+        sql.push_str(" WHERE ");
+        sql.push_str(&clauses.join(" AND "));
+    }
+
+    sql.push_str(" ORDER BY id DESC LIMIT ");
+    sql.push_str(&limit.to_string());
+
+    let mut stmt = c.prepare(&sql)?;
+    let mut rows = stmt.query(rusqlite::params_from_iter(params_vec.iter().map(|v| v.as_str())))?;
+
+    let mut out = Vec::new();
+    while let Some(row) = rows.next()? {
+        let id: i64 = row.get(0)?;
+        let doc_type: String = row.get(1)?;
+        let status: String = row.get(2)?;
+        let reference_num: String = row.get(3)?;
+        let contributor_num: Option<String> = row.get(4)?;
+        let month: i64 = row.get(5)?;
+        let year: i64 = row.get(6)?;
+        let path: String = row.get(7)?;
+
+        let ref_period = if month > 0 && year > 0 {
+            format!("{:02}/{}", month, year)
+        } else {
+            String::new()
+        };
+
+        out.push(DocumentRow {
+            id,
+            doc_type,
+            status,
+            reference_num,
+            contributor_num,
+            ref_period,
+            path,
+        });
+    }
+
+    Ok(out)
+}
+
+pub fn recent_matches(limit: usize) -> anyhow::Result<Vec<RecentMatchRow>> {
+    let c = conn();
+    let mut stmt = c.prepare(
+        "SELECT contributor_num, ref_month, ref_year, reference_num FROM documents WHERE status = 'matched' ORDER BY id DESC LIMIT ?1",
+    )?;
+
+    let rows = stmt.query_map([limit as i64], |row| {
+        let contributor_num: String = row.get(0)?;
+        let month: i64 = row.get(1)?;
+        let year: i64 = row.get(2)?;
+        let reference_num: String = row.get(3)?;
+        Ok(RecentMatchRow {
+            contributor_num,
+            ref_period: if month > 0 && year > 0 {
+                format!("{:02}/{}", month, year)
+            } else {
+                String::new()
+            },
+            reference_num,
+        })
+    })?;
+
+    let mut out = Vec::new();
+    for row in rows {
+        out.push(row?);
+    }
+    Ok(out)
+}
+
+pub fn cleanup_missing_files() -> anyhow::Result<usize> {
+    let c = conn();
+    let mut stmt = c.prepare("SELECT id, path FROM documents")?;
+    let rows = stmt.query_map([], |row| Ok((row.get::<_, i64>(0)?, row.get::<_, String>(1)?)))?;
+
+    let mut removed = 0;
+    for row in rows {
+        let (id, path) = row?;
+        let path_buf = PathBuf::from(path);
+        if !path_buf.exists() {
+            c.execute("DELETE FROM documents WHERE id = ?1", params![id])?;
+            removed += 1;
+        }
+    }
+
+    Ok(removed)
+}
+
+pub fn delete_document(id: i64) -> anyhow::Result<()> {
+    let c = conn();
+    c.execute("DELETE FROM documents WHERE id = ?1", params![id])?;
     Ok(())
 }
 

@@ -20,6 +20,7 @@ struct Cli {
 #[derive(Subcommand)]
 enum Cmd {
     Start,
+    Web,
     DryRun {
         #[arg(short, long)]
         path: std::path::PathBuf,
@@ -63,6 +64,10 @@ fn main() -> anyhow::Result<()> {
                 );
                 return Err(e);
             }
+        }
+        Cmd::Web => {
+            let _log_guard = logging::init(&settings.logs.output_path)?;
+            inss_watcher::infra::web::start(&settings)?;
         }
         Cmd::DryRun { path } => {
             let _log_guard = logging::init(&settings.logs.output_path)?;
