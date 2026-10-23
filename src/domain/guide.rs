@@ -50,28 +50,26 @@ impl From<(ParsedGuide, PathBuf)> for InssGuide {
 }
 
 pub fn parse_guide(text: &str) -> Result<ParsedGuide, ParseGuideError> {
-    Ok(
-        ParsedGuide { 
-            reference_num: extract_guide_reference(text).ok_or(ParseGuideError::MissingReference)?,
-            contributor_num: extract_contributor_num(text).ok_or(ParseGuideError::MissingContributor)?,
-            reference_period: extract_reference_period(text).ok_or(ParseGuideError::MissingPeriod)?,
-            amount: extract_amount(text).ok_or(ParseGuideError::MissingAmount)?,
-        }
-    )
+    Ok(ParsedGuide {
+        reference_num: extract_guide_reference(text).ok_or(ParseGuideError::MissingReference)?,
+        contributor_num: extract_contributor_num(text)
+            .ok_or(ParseGuideError::MissingContributor)?,
+        reference_period: extract_reference_period(text).ok_or(ParseGuideError::MissingPeriod)?,
+        amount: extract_amount(text).ok_or(ParseGuideError::MissingAmount)?,
+    })
 }
 
 fn extract_guide_reference(text: &str) -> Option<String> {
-    let re = regex::Regex::new(
-        r"(?is)Número\s+da\s+Guia[^\d]{0,30}(\d{8,12})"
-    ).ok()?;
+    let re = regex::Regex::new(r"(?is)Número\s+da\s+Guia[^\d]{0,30}(\d{8,12})").ok()?;
 
-    re.captures_iter(text)
-        .last()
-        .map(|cap| cap[1].to_string())
+    re.captures_iter(text).last().map(|cap| cap[1].to_string())
 }
 
 pub fn extract_contributor_num(text: &str) -> Option<String> {
-    let re = regex::Regex::new(r"(?is)Guia de Pagamento de Contribuição\s*-\s*GPC.*?(\d{8,12}).*?Número do Contribuinte").ok()?;
+    let re = regex::Regex::new(
+        r"(?is)Guia de Pagamento de Contribuição\s*-\s*GPC.*?(\d{8,12}).*?Número do Contribuinte",
+    )
+    .ok()?;
 
     let caps = re.captures(text)?;
     Some(caps[1].to_string())
@@ -80,9 +78,9 @@ pub fn extract_contributor_num(text: &str) -> Option<String> {
 fn extract_reference_period(text: &str) -> Option<ReferencePeriod> {
     // First try: match MM/YYYY that appears immediately after a full DD/MM/YYYY date
     // This is the specific format: "03/11/2025 14:4610/2025"
-    let anchored = fancy_regex::Regex::new(
-        r"\d{2}/\d{2}/\d{4}[^/]{0,10}(0?[1-9]|1[0-2])/(\d{4})"
-    ).ok()?;
+    let anchored =
+        fancy_regex::Regex::new(r"\d{2}/\d{2}/\d{4}\s*\d{2}:\d{2}\s*(1[0-2]|0?[1-9])/(\d{4})")
+            .ok()?;
 
     if let Ok(Some(cap)) = anchored.captures(text) {
         return Some(ReferencePeriod {
@@ -120,20 +118,14 @@ mod tests {
     fn extracts_reference_9digit() {
         let text = "Data limite de PagamentoNúmero da Guia
                     123456789";
-        assert_eq!(
-            extract_guide_reference(text),
-            Some("123456789".to_string())
-        )
+        assert_eq!(extract_guide_reference(text), Some("123456789".to_string()))
     }
 
     #[test]
     fn extracts_reference_8digit() {
         let text = "Data limite de PagamentoNúmero da Guia
                     12345678";
-        assert_eq!(
-            extract_guide_reference(text),
-            Some("12345678".to_string())
-        )
+        assert_eq!(extract_guide_reference(text), Some("12345678".to_string()))
     }
 
     #[test]
@@ -196,10 +188,7 @@ mod tests {
             Número do Contribuinte
         ";
 
-        assert_eq!(
-            extract_contributor_num(text),
-            Some("915732100".to_string())
-        );
+        assert_eq!(extract_contributor_num(text), Some("915732100".to_string()));
     }
 
     #[test]
@@ -292,4 +281,16 @@ mod tests {
         assert!(err.to_string().contains("missing payment amount"));
     }
 
-} 
+    #[test]
+    fn period_survives_glued_time_for_every_month() {
+        for m in 1..=12u8 {
+            for text in [
+                format!("03/01/2026 14:46{m:02}/2025"),
+                format!("03/01/2026 14:46{m}/2025"),
+            ] {
+                let p = extract_reference_period(&text).unwrap();
+                assert_eq!((p.month, p.year), (m, 2025), "failed for {text}");
+            }
+        }
+    }
+}
